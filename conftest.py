@@ -1,6 +1,9 @@
+import io
 import json
-import pytest
 import logging
+import os
+import sys
+import pytest
 from datetime import datetime
 from pathlib import Path
 from selenium import webdriver
@@ -8,7 +11,35 @@ from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.chrome.service import Service as ChromeService
 from utils.config import BASE_DIR, SCREENSHOTS_DIR
 
+# Forzar codificación UTF-8 en streams estándar y entorno para evitar caracteres corruptos (mojibake)
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+if hasattr(sys.stderr, "reconfigure"):
+    try:
+        sys.stderr.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+os.environ["PYTHONIOENCODING"] = "utf-8"
+os.environ["PYTHONUTF8"] = "1"
+
 logger = logging.getLogger(__name__)
+
+
+def pytest_configure(config):
+    """Asegura la codificación UTF-8 durante toda la sesión de Pytest."""
+    if hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(encoding="utf-8")
+        except Exception:
+            pass
+    if hasattr(sys.stderr, "reconfigure"):
+        try:
+            sys.stderr.reconfigure(encoding="utf-8")
+        except Exception:
+            pass
 
 
 def pytest_addoption(parser):

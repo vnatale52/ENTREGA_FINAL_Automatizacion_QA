@@ -1,0 +1,17 @@
+{
+  "valid_user": {
+    "username": "standard_user",
+    "password": "secret_sauce"
+  },
+  "locked_out_user": {
+    "username": "locked_out_user",
+    "password": "secret_sauce"
+  },
+  "expected_data": {
+    "browser_title": "Swag Labs",
+    "inventory_title": "Products",
+    "inventory_url_part": "/inventory.html",
+    "cart_title": "Your Cart",
+    "cart_url_part": "/cart.html"
+  }
+}

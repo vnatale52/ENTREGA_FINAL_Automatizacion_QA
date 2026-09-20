@@ -123,4 +123,4 @@ def pytest_runtest_makereport(item, call):
 
 def pytest_html_report_title(report):
     """Personaliza el título del reporte HTML generado."""
-    report.title = "Reporte de Pruebas Automatizadas - SauceDemo (Pre-Entrega QA)"
+    report.title = "Reporte de Pruebas Automatizadas - SauceDemo (Pre-Entrega QA de Vincenzo Natale)"

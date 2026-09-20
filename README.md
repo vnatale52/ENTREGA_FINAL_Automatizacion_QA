@@ -1,4 +1,5 @@
 # Pre-Entrega: Automatización de Pruebas QA (SauceDemo)
+**Autor:** Vincenzo Natale
 
 Proyecto de automatización de pruebas web end-to-end (E2E) desarrollado para la **Pre-Entrega de Automatización de Testing (hasta Clase 8)**. El objetivo es validar los flujos críticos de autenticación, exploración de catálogo e interacción con el carrito de compras en la aplicación web [SauceDemo](https://www.saucedemo.com/).
 
@@ -31,7 +32,7 @@ Demostrar la capacidad para diseñar, estructurar y ejecutar pruebas funcionales
 El proyecto está organizado de forma modular cumpliendo con las consignas del curso:
 
 ```text
-pre-entrega-automation-testing-[nombre-apellido]/
+pre-entrega-automation-testing-vincenzo-natale/
 ├── .gitignore                          # Exclusión de binarios, reportes generados y caches
 ├── requirements.txt                    # Dependencias del proyecto
 ├── pytest.ini                          # Configuración de Pytest, logs y marcadores
@@ -74,8 +75,8 @@ Abre una terminal de **Git Bash** y sigue estos pasos:
 
 ### 1. Clonar el repositorio
 ```bash
-git clone https://github.com/[tu-usuario]/pre-entrega-automation-testing-[nombre-apellido].git
-cd pre-entrega-automation-testing-[nombre-apellido]
+git clone https://github.com/[tu-usuario]/pre-entrega-automation-testing-vincenzo-natale.git
+cd pre-entrega-automation-testing-vincenzo-natale
 ```
 
 ### 2. Crear y activar el entorno virtual
@@ -146,5 +147,6 @@ pytest -v -m cart --headless
 
 ## 👥 Formato de Entrega del Curso
 
-- **Nombre sugerido del repositorio en GitHub:** `pre-entrega-automation-testing-[nombre-apellido]`
+- **Estudiante / Autor:** Vincenzo Natale
+- **Nombre del repositorio en GitHub:** `pre-entrega-automation-testing-vincenzo-natale`
 - **Entregables:** Repositorio público en GitHub, archivo `README.md` completo, archivo `reporte.html` y commits descriptivos del progreso.

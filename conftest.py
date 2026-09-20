@@ -211,11 +211,8 @@ def pytest_html_results_summary(prefix, summary, postfix, session):
             color: #0f172a !important;
             margin-bottom: 4px !important;
         }
-        /* Forzar apertura de filas de extras */
-        .extras-row, .extras-row.hidden {
-            display: table-row !important;
-        }
-        .col-result.collapsed::after {
+        /* Respetar el colapso/ocultamiento al hacer clic en Hide All Details */
+        .extras-row.hidden {
             display: none !important;
         }
         /* Ampliar y centrar las capturas de pantalla de evidencia */

@@ -108,11 +108,11 @@ pytest -v tests/test_saucedemo.py --headless
 ```
 
 ### Generación de Reporte HTML (Consigna obligatoria):
-Para generar el reporte HTML con todos los detalles y estadísticas de la ejecución:
+El reporte HTML se genera automáticamente en la carpeta `reports/`:
 ```bash
-pytest -v tests/test_saucedemo.py --headless --html=reporte.html --self-contained-html
+pytest -v tests/test_saucedemo.py --headless
 ```
-*(También puedes generarlo dentro de la carpeta de reportes con `--html=reports/reporte.html`)*
+*(Pytest ya tiene configurada por defecto la bandera `--html=reports/reporte.html --self-contained-html`)*
 
 ### Ejecución por marcadores (tags):
 ```bash
@@ -130,12 +130,12 @@ pytest -v -m cart --headless
 
 ## 📊 Reportes y Evidencias de Ejecución
 
-1. **Reporte HTML:**
-   - Una vez finalizada la ejecución con la bandera `--html=reporte.html`, abre el archivo en cualquier navegador web:
+1. **Reporte HTML Ejecutivo y Visual:**
+   - Una vez finalizada la ejecución, abre el archivo único en cualquier navegador web:
      ```bash
-     start reporte.html
+     start reports/reporte.html
      ```
-   - El reporte incluye: tiempo total de ejecución, detalles por paso, logs capturados por cada test y estado (Passed / Failed).
+   - El reporte incluye: Dashboard con tarjetas de métricas (KPIs), estado de cada caso, detalles paso a paso formateados, capturas de pantalla de evidencia visual de alta resolución centradas y logs en tiempo real.
 
 2. **Capturas de pantalla automáticas (Screenshots):**
    - El archivo `conftest.py` implementa el hook `pytest_runtest_makereport`. Si algún caso de prueba llega a fallar, automáticamente toma una captura del navegador con timestamp y la almacena en `reports/screenshots/`, incrustándola además en el reporte HTML.

@@ -15,7 +15,6 @@ ENV/
 htmlcov/
 
 # Logs and Reports
-reports/*.html
 reports/assets/
 reports/screenshots/*.png
 *.log

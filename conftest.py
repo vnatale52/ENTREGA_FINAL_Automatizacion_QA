@@ -164,16 +164,37 @@ def pytest_html_results_summary(prefix, summary, postfix, session):
     """Añade un dashboard ejecutivo con estilos modernos, KPIs y apertura automática de detalles."""
     custom_assets = """
     <script>
+        // Monkey-patch seguro para prevenir Uncaught DOMException: pushState en URLs file:// locales
+        (function() {
+            var origPush = window.history.pushState;
+            var origReplace = window.history.replaceState;
+            window.history.pushState = function(state, title, url) {
+                try {
+                    if (origPush) origPush.call(window.history, state, title, url);
+                } catch(e) {
+                    console.warn("pushState capturado y prevenido para origen file://:", e);
+                }
+            };
+            window.history.replaceState = function(state, title, url) {
+                try {
+                    if (origReplace) origReplace.call(window.history, state, title, url);
+                } catch(e) {
+                    console.warn("replaceState capturado y prevenido para origen file://:", e);
+                }
+            };
+        })();
+
         // Limpiar caché de colapso y forzar apertura automática de todos los detalles visuales
         try {
             sessionStorage.removeItem('collapsedIds');
             sessionStorage.removeItem('sortAsc');
         } catch(e) {}
-        window.addEventListener('load', function() {
+
+        window.addEventListener('DOMContentLoaded', function() {
             setTimeout(function() {
                 var btn = document.getElementById('show_all_details');
                 if (btn) { btn.click(); }
-            }, 100);
+            }, 50);
         });
     </script>
     <style>

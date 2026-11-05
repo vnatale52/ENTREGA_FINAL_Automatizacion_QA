@@ -36,11 +36,12 @@ class CartPage(BasePage):
 
     def get_cart_items(self) -> List:
         """Retorna la lista de WebElements correspondientes a los ítems en el carrito."""
-        return self.find_elements(self.CART_ITEMS)
+        return self.find_elements(self.CART_ITEMS, timeout=3)
 
     def get_cart_items_count(self) -> int:
         """Retorna la cantidad de ítems presentes en el carrito."""
-        return len(self.get_cart_items())
+        items = self.driver.find_elements(*self.CART_ITEMS)
+        return len(items)
 
     def get_cart_items_details(self) -> List[Dict[str, str]]:
         """Extrae la información detallada (nombre, precio, cantidad) de todos los productos en el carrito."""
@@ -61,6 +62,26 @@ class CartPage(BasePage):
         logger.info(f"¿Producto '{product_name}' está en el carrito?: {matching}")
         return matching
 
+    def remove_product_by_name(self, product_name: str) -> None:
+        """Elimina un producto específico del carrito haciendo clic en su botón 'Remove'."""
+        items = self.get_cart_items()
+        for item in items:
+            name = item.find_element(*self.ITEM_NAME).text.strip()
+            if name == product_name:
+                remove_btn = item.find_element(*self.REMOVE_BTN)
+                logger.info(f"Eliminando del carrito el producto: '{name}'")
+                try:
+                    remove_btn.click()
+                except Exception:
+                    self.driver.execute_script("arguments[0].click();", remove_btn)
+                return
+        raise ValueError(f"El producto '{product_name}' no se encontró en el carrito para eliminar.")
+
     def is_checkout_button_visible(self) -> bool:
         """Verifica si el botón de Checkout está disponible."""
         return self.is_visible(self.CHECKOUT_BTN)
+
+    def click_checkout(self) -> None:
+        """Hace clic en el botón Checkout para iniciar el proceso de compra."""
+        logger.info("Iniciando proceso de Checkout desde el carrito...")
+        self.click(self.CHECKOUT_BTN)

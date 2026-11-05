@@ -1,0 +1,46 @@
+name: Suite de Pruebas Automatizadas QA (UI + API)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  test-execution:
+    name: Ejecutar Pruebas Selenium UI y Requests API
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del código del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar entorno de Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Instalar Google Chrome para pruebas UI Headless
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Instalar dependencias del proyecto
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Ejecutar suite completa (UI + API) y generar reporte HTML
+        run: |
+          pytest -v --headless --html=reports/reporte.html --self-contained-html
+
+      - name: Subir Reporte HTML, Capturas y Logs como Artefactos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencias-qa-reporte-y-logs
+          path: |
+            reports/reporte.html
+            reports/screenshots/
+            logs/suite.log
+          retention-days: 30

@@ -14,10 +14,14 @@ ENV/
 .coverage
 htmlcov/
 
-# Logs and Reports
+# Logs y capturas temporales (se conserva reporte.html principal)
 reports/assets/
 reports/screenshots/*.png
-*.log
+logs/*.log*
+
+# Archivos de referencia locales
+*.pdf
+*.zip
 
 # IDE & OS
 .vscode/

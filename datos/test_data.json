@@ -12,6 +12,37 @@
     "inventory_title": "Products",
     "inventory_url_part": "/inventory.html",
     "cart_title": "Your Cart",
-    "cart_url_part": "/cart.html"
+    "cart_url_part": "/cart.html",
+    "checkout_step_one_title": "Checkout: Your Information",
+    "checkout_step_one_url_part": "/checkout-step-one.html",
+    "checkout_step_two_title": "Checkout: Overview",
+    "checkout_step_two_url_part": "/checkout-step-two.html",
+    "checkout_complete_title": "Checkout: Complete!",
+    "checkout_complete_url_part": "/checkout-complete.html",
+    "order_complete_header": "Thank you for your order!",
+    "checkout_empty_first_name_error": "Error: First Name is required"
+  },
+  "api_data": {
+    "new_posts": [
+      {
+        "title": "Automatización de Pruebas QA - Entrega Final",
+        "body": "Validación de creación de recursos mediante petición HTTP POST con Requests.",
+        "userId": 1
+      },
+      {
+        "title": "Reporte Ejecutivo y Trazabilidad en Pytest",
+        "body": "Integración de pruebas de UI con Selenium y pruebas de API con JSONPlaceholder.",
+        "userId": 2
+      }
+    ],
+    "put_payload": {
+      "id": 1,
+      "title": "Recurso actualizado completamente mediante PUT",
+      "body": "Contenido reemplazado íntegramente por la suite automatizada de QA.",
+      "userId": 1
+    },
+    "patch_payload": {
+      "title": "Título actualizado parcialmente mediante PATCH por QA"
+    }
   }
 }

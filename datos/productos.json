@@ -1,0 +1,17 @@
+[
+  {
+    "nombre": "Sauce Labs Backpack",
+    "precio": "$29.99",
+    "descripcion": "carry.allTheThings() with the sleek, streamlined Sly Pack that melds uncompromising style with unequaled laptop and tablet protection."
+  },
+  {
+    "nombre": "Sauce Labs Bike Light",
+    "precio": "$9.99",
+    "descripcion": "A red light isn't the desired state in testing but it sure helps when riding your bike at night. Water-resistant with 3 lighting modes, 1 AAA battery included."
+  },
+  {
+    "nombre": "Sauce Labs Bolt T-Shirt",
+    "precio": "$15.99",
+    "descripcion": "Get your testing superhero on with the Sauce Labs bolt T-shirt. From American Apparel, 100% ringspun combed cotton, heather gray with red bolt."
+  }
+]

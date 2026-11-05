@@ -1,0 +1,6 @@
+usuario,clave,debe_funcionar,mensaje_esperado,descripcion
+standard_user,secret_sauce,True,,Inicio de sesión exitoso con credenciales estándar válidas
+locked_out_user,secret_sauce,False,Epic sadface: Sorry, this user has been locked out.,Intento de inicio de sesión con usuario bloqueado (escenario negativo)
+usuario_invalido,clave_erronea,False,Epic sadface: Username and password do not match any user in this service,Intento de inicio de sesión con credenciales inexistentes (escenario negativo)
+,secret_sauce,False,Epic sadface: Username is required,Intento de inicio de sesión con campo de usuario vacío (escenario negativo)
+standard_user,,False,Epic sadface: Password is required,Intento de inicio de sesión con campo de contraseña vacío (escenario negativo)

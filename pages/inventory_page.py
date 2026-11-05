@@ -1,4 +1,5 @@
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import Select, WebDriverWait
 from pages.base_page import BasePage
 from utils.config import INVENTORY_URL
 from typing import Dict, List
@@ -76,7 +77,7 @@ class InventoryPage(BasePage):
         price = first_item.find_element(*self.ITEM_PRICE).text.strip()
         add_btn = first_item.find_element(*self.ADD_TO_CART_BTN)
 
-        logger.info(f"Haciendo click en 'Add to cart' para el producto: {name}")
+        logger.info(f"Haciendo clic en 'Add to cart' para el primer producto: {name}")
         self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", add_btn)
         try:
             add_btn.click()
@@ -84,6 +85,50 @@ class InventoryPage(BasePage):
             self.driver.execute_script("arguments[0].click();", add_btn)
 
         return {"name": name, "price": price}
+
+    def add_product_by_name(self, product_name: str) -> Dict[str, str]:
+        """Busca un producto específico por su nombre en el catálogo y lo añade al carrito."""
+        items = self.find_elements(self.INVENTORY_ITEMS)
+        for item in items:
+            name = item.find_element(*self.ITEM_NAME).text.strip()
+            if name == product_name:
+                price = item.find_element(*self.ITEM_PRICE).text.strip()
+                desc = item.find_element(*self.ITEM_DESC).text.strip()
+                add_btn = item.find_element(*self.ADD_TO_CART_BTN)
+                logger.info(f"Agregando al carrito el producto específico: '{name}' ({price})")
+                self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", add_btn)
+                try:
+                    add_btn.click()
+                except Exception:
+                    self.driver.execute_script("arguments[0].click();", add_btn)
+                return {"name": name, "price": price, "description": desc}
+
+        raise ValueError(f"No se encontró el producto '{product_name}' en el catálogo.")
+
+    def sort_products_by(self, option_value: str) -> "InventoryPage":
+        """Ordena el catálogo usando el selector de filtro ('az', 'za', 'lohi', 'hilo')."""
+        logger.info(f"Aplicando filtro de ordenamiento del catálogo: '{option_value}'")
+        dropdown_el = self.find_element(self.SORT_DROPDOWN)
+        select = Select(dropdown_el)
+        select.select_by_value(option_value)
+        return self
+
+    def get_all_product_prices(self) -> List[float]:
+        """Extrae la lista de precios de todos los productos en el orden actual como valores flotantes."""
+        items = self.get_inventory_items()
+        prices = []
+        for item in items:
+            price_str = item.find_element(*self.ITEM_PRICE).text.strip().replace("$", "")
+            prices.append(float(price_str))
+        logger.info(f"Lista de precios en el orden actual del catálogo: {prices}")
+        return prices
+
+    def get_all_product_names(self) -> List[str]:
+        """Extrae la lista de nombres de todos los productos en el orden actual."""
+        items = self.get_inventory_items()
+        names = [item.find_element(*self.ITEM_NAME).text.strip() for item in items]
+        logger.info(f"Lista de nombres en el orden actual del catálogo: {names}")
+        return names
 
     def get_cart_badge_count(self) -> int:
         """Obtiene el número mostrado en el badge del carrito. Retorna 0 si no está presente."""
@@ -97,7 +142,6 @@ class InventoryPage(BasePage):
 
     def wait_for_cart_badge_count(self, expected_count: int, timeout: int = 5) -> int:
         """Espera explícitamente a que el badge del carrito alcance un valor específico."""
-        from selenium.webdriver.support.ui import WebDriverWait
         WebDriverWait(self.driver, timeout).until(
             lambda d: self.get_cart_badge_count() == expected_count
         )

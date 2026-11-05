@@ -23,7 +23,6 @@ class LoginPage(BasePage):
     def load(self) -> "LoginPage":
         """Navega a la página de inicio de sesión de SauceDemo."""
         self.open_url(self.url)
-        # Esperar a que el botón de login esté visible para confirmar carga completa
         self.find_element(self.LOGIN_BUTTON)
         return self
 
@@ -43,13 +42,17 @@ class LoginPage(BasePage):
 
     def login(self, username: str, password: str) -> None:
         """Flujo completo de inicio de sesión: usuario, contraseña y clic."""
-        logger.info(f"Iniciando sesión con usuario: {username}")
+        logger.info(f"Iniciando sesión con usuario: '{username}'")
         self.enter_username(username)
         self.enter_password(password)
         self.click_login()
 
+    def is_error_displayed(self) -> bool:
+        """Verifica si el contenedor de mensaje de error está visible en pantalla."""
+        return self.is_visible(self.ERROR_MESSAGE)
+
     def get_error_message(self) -> str:
-        """Obtiene el texto del mensaje de error si las credenciales fallan."""
+        """Obtiene el texto del mensaje de error cuando las credenciales son inválidas."""
         return self.get_text(self.ERROR_MESSAGE)
 
     def is_login_page_loaded(self) -> bool:

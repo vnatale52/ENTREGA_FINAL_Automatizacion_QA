@@ -13,26 +13,47 @@ logger = logging.getLogger(__name__)
 class CheckoutPage(BasePage):
     """Page Object para el flujo completo de Checkout en SauceDemo (Pasos 1, 2 y Confirmación)."""
 
-    # Localizadores Generales de Checkout
+    # =========================================================================
+    # Localizador general de cabecera en las 3 etapas de Checkout
+    # =========================================================================
     PAGE_TITLE = (By.CLASS_NAME, "title")
 
-    # Localizadores Paso 1: Información del comprador (checkout-step-one.html)
+    # =========================================================================
+    # Localizadores Paso 1: Datos del comprador (/checkout-step-one.html)
+    # =========================================================================
+    # Campo de texto obligatorio para el nombre (atributo id='first-name')
     FIRST_NAME_INPUT = (By.ID, "first-name")
+    # Campo de texto obligatorio para el apellido (atributo id='last-name')
     LAST_NAME_INPUT = (By.ID, "last-name")
+    # Campo de texto obligatorio para el código postal (atributo id='postal-code')
     POSTAL_CODE_INPUT = (By.ID, "postal-code")
+    # Botón para validar el formulario y avanzar al resumen (atributo id='continue')
     CONTINUE_BTN = (By.ID, "continue")
+    # Botón para cancelar y volver al carrito (atributo id='cancel')
     CANCEL_BTN = (By.ID, "cancel")
+    # Alerta de validación cuando algún campo obligatorio está vacío (data-test='error')
     ERROR_MESSAGE = (By.CSS_SELECTOR, "[data-test='error']")
 
-    # Localizadores Paso 2: Resumen de compra (checkout-step-two.html)
+    # =========================================================================
+    # Localizadores Paso 2: Resumen financiero y confirmación (/checkout-step-two.html)
+    # =========================================================================
+    # Etiqueta con el subtotal de ítems antes de impuestos ('summary_subtotal_label')
     SUMMARY_SUBTOTAL = (By.CLASS_NAME, "summary_subtotal_label")
+    # Etiqueta con el monto de impuestos calculados ('summary_tax_label')
     SUMMARY_TAX = (By.CLASS_NAME, "summary_tax_label")
+    # Etiqueta con el monto total final a pagar ('summary_total_label')
     SUMMARY_TOTAL = (By.CLASS_NAME, "summary_total_label")
+    # Botón final para confirmar y emitir la orden de compra (atributo id='finish')
     FINISH_BTN = (By.ID, "finish")
 
-    # Localizadores Confirmación Final (checkout-complete.html)
+    # =========================================================================
+    # Localizadores Paso 3: Orden completada (/checkout-complete.html)
+    # =========================================================================
+    # Encabezado principal de éxito ('Thank you for your order!', clase 'complete-header')
     COMPLETE_HEADER = (By.CLASS_NAME, "complete-header")
+    # Párrafo descriptivo de confirmación de despacho ('complete-text')
     COMPLETE_TEXT = (By.CLASS_NAME, "complete-text")
+    # Botón para volver al catálogo de productos tras finalizar la compra (id='back-to-products')
     BACK_HOME_BTN = (By.ID, "back-to-products")
 
     def __init__(self, driver):

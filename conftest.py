@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import sys
+import time
 from datetime import datetime
 import pytest
 from selenium import webdriver
@@ -72,6 +73,8 @@ def driver(request):
     """Inicializa y destruye la instancia de WebDriver para cada prueba de interfaz (UI).
 
     Garantiza la total independencia entre casos de prueba (Teardown limpio).
+    Cuando se ejecuta con ventana visible (sin --headless), mantiene la ventana abierta
+    durante 3 segundos al finalizar cada prueba para permitir su adecuada visualización.
     """
     is_headless = request.config.getoption("--headless")
 
@@ -102,6 +105,10 @@ def driver(request):
     request.node.driver = browser
 
     yield browser
+
+    if not is_headless:
+        logger.info("Manteniendo la ventana del navegador visible durante 3 segundos para su visualización...")
+        time.sleep(3)
 
     logger.info("Cerrando sesión de WebDriver (Teardown)...")
     browser.quit()

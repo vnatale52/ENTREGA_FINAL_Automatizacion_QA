@@ -11,7 +11,28 @@ from utils.datos import (
 from utils.logger import logger
 
 # Cargar datos externos para parametrización (Data-Driven Testing)
-CASOS_LOGIN_CSV = leer_csv_login()
+_RAW_LOGIN_CSV = leer_csv_login()
+_LOGIN_CSV_IDS = [
+    "csv_usuario_estandar_valido",
+    "csv_usuario_bloqueado_negativo",
+    "csv_credenciales_invalidas_negativo",
+    "csv_usuario_vacio_negativo",
+    "csv_clave_vacia_negativo",
+]
+# Asignar dinámicamente el marcador @pytest.mark.negative a los escenarios negativos del CSV
+CASOS_LOGIN_PARAMETRIZADOS = [
+    pytest.param(
+        fila[0],
+        fila[1],
+        fila[2],
+        fila[3],
+        fila[4],
+        id=_LOGIN_CSV_IDS[i] if i < len(_LOGIN_CSV_IDS) else f"csv_caso_{i+1}",
+        marks=() if fila[2] else (pytest.mark.negative,),
+    )
+    for i, fila in enumerate(_RAW_LOGIN_CSV)
+]
+
 PRODUCTOS_JSON = leer_json_productos()
 
 
@@ -64,17 +85,9 @@ def test_01_login_exitoso(driver, test_data):
 @pytest.mark.ui
 @pytest.mark.regression
 @pytest.mark.login
-@pytest.mark.negative
 @pytest.mark.parametrize(
     "usuario, clave, debe_funcionar, mensaje_esperado, descripcion",
-    CASOS_LOGIN_CSV,
-    ids=[
-        "csv_usuario_estandar_valido",
-        "csv_usuario_bloqueado_negativo",
-        "csv_credenciales_invalidas_negativo",
-        "csv_usuario_vacio_negativo",
-        "csv_clave_vacia_negativo",
-    ],
+    CASOS_LOGIN_PARAMETRIZADOS,
 )
 def test_02_login_parametrizado_csv(
     driver, usuario, clave, debe_funcionar, mensaje_esperado, descripcion

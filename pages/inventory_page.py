@@ -11,19 +11,34 @@ logger = logging.getLogger(__name__)
 class InventoryPage(BasePage):
     """Page Object para la página del Catálogo / Inventario de SauceDemo."""
 
-    # Localizadores de la cabecera y navegación
+    # =========================================================================
+    # Localizadores de cabecera y barra de navegación (Header & Navigation)
+    # =========================================================================
+    # Título secundario de la vista actual ('Products', localizado por clase CSS 'title')
     PAGE_TITLE = (By.CLASS_NAME, "title")
+    # Marca principal de la aplicación en la cabecera ('Swag Labs', clase CSS 'app_logo')
     APP_LOGO = (By.CLASS_NAME, "app_logo")
+    # Botón para desplegar el menú lateral hamburguesa (localizado por ID único 'react-burger-menu-btn')
     BURGER_MENU_BTN = (By.ID, "react-burger-menu-btn")
+    # Menú desplegable <select> para ordenar productos por nombre o precio (clase 'product_sort_container')
     SORT_DROPDOWN = (By.CLASS_NAME, "product_sort_container")
+    # Enlace contenedor del ícono del carrito de compras en la esquina superior derecha
     CART_LINK = (By.CLASS_NAME, "shopping_cart_link")
+    # Contador numérico superpuesto en el ícono del carrito cuando hay productos añadidos
     CART_BADGE = (By.CLASS_NAME, "shopping_cart_badge")
 
-    # Localizadores de elementos del catálogo
+    # =========================================================================
+    # Localizadores de tarjetas de producto dentro del catálogo (Inventory Grid)
+    # =========================================================================
+    # Tarjeta individual de cada producto listado en el catálogo
     INVENTORY_ITEMS = (By.CLASS_NAME, "inventory_item")
+    # Nombre/título del producto dentro de su tarjeta
     ITEM_NAME = (By.CLASS_NAME, "inventory_item_name")
+    # Precio unitario del producto con formato '$XX.XX'
     ITEM_PRICE = (By.CLASS_NAME, "inventory_item_price")
+    # Descripción textual del producto dentro de su tarjeta
     ITEM_DESC = (By.CLASS_NAME, "inventory_item_desc")
+    # Botón de acción 'Add to cart' / 'Remove' asociado a cada tarjeta de producto
     ADD_TO_CART_BTN = (By.CSS_SELECTOR, "button.btn_inventory")
 
     def __init__(self, driver):

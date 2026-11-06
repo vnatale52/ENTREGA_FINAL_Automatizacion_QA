@@ -10,14 +10,24 @@ logger = logging.getLogger(__name__)
 class CartPage(BasePage):
     """Page Object para la página del Carrito de Compras de SauceDemo."""
 
-    # Localizadores de la página del carrito
+    # =========================================================================
+    # Localizadores de la página del carrito (/cart.html)
+    # =========================================================================
+    # Título de cabecera de la sección ('Your Cart', clase CSS 'title')
     PAGE_TITLE = (By.CLASS_NAME, "title")
+    # Fila contenedora de cada producto listado dentro del carrito ('cart_item')
     CART_ITEMS = (By.CLASS_NAME, "cart_item")
+    # Indicador de cantidad de unidades por fila de producto ('cart_quantity')
     ITEM_QUANTITY = (By.CLASS_NAME, "cart_quantity")
+    # Nombre del producto dentro del detalle del carrito ('inventory_item_name')
     ITEM_NAME = (By.CLASS_NAME, "inventory_item_name")
+    # Precio unitario del producto dentro del carrito ('inventory_item_price')
     ITEM_PRICE = (By.CLASS_NAME, "inventory_item_price")
+    # Botón 'Remove' para eliminar un ítem del carrito (selector CSS 'button.cart_button')
     REMOVE_BTN = (By.CSS_SELECTOR, "button.cart_button")
+    # Botón para regresar al catálogo de productos (atributo id='continue-shopping')
     CONTINUE_SHOPPING_BTN = (By.ID, "continue-shopping")
+    # Botón principal para iniciar el proceso de pago/envío (atributo id='checkout')
     CHECKOUT_BTN = (By.ID, "checkout")
 
     def __init__(self, driver):

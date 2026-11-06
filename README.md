@@ -7,13 +7,36 @@ Framework integral de automatización de pruebas desarrollado para el **Trabajo 
 
 ## 🎯 Propósito del Proyecto
 
-El propósito de este proyecto es proporcionar una arquitectura de pruebas automatizadas escalable, mantenible y reproducible que permita validar tanto el frontend como el backend de una aplicación web moderna. Sus objetivos principales son:
+El propósito principal de este proyecto es construir y demostrar un **framework de automatización de pruebas de grado profesional**, capaz de certificar la calidad funcional y de integración de una aplicación web moderna tanto en su capa de presentación (**Frontend / UI**) como en su capa de servicios (**Backend / API REST**).
 
-- **Separación de responsabilidades con Page Object Model (POM):** Aislar los localizadores y las acciones de cada página (`pages/`) de la lógica de validación de los casos de prueba (`tests/`).
-- **Enfoque Data-Driven Testing (DDT) e Híbrido:** Parametrizar las pruebas con `@pytest.mark.parametrize` leyendo datos fijos desde fuentes externas (`datos/login.csv`, `datos/productos.json`, `datos/test_data.json`) y generando datos dinámicos realistas mediante `Faker`.
-- **Cobertura Multicapa (UI + API REST):** Validar flujos completos de negocio en la interfaz web (login, filtros de catálogo, carrito, checkout y escenarios negativos) y certificar el ciclo de vida CRUD de endpoints HTTP (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`) con encadenamiento de peticiones y validación en 5 niveles (código de estado, cabeceras, esquema JSON, contenido y tiempo de respuesta).
-- **Independencia y Estabilidad:** Garantizar que cada prueba se ejecute en un entorno limpio mediante fixtures con *teardown* automático y esperas explícitas (`WebDriverWait`).
-- **Observabilidad y Trazabilidad Completa:** Generar un reporte visual autocontenido (`reports/reporte.html`) con métricas ejecutivas (KPIs), capturas de pantalla automáticas con fecha/hora (`reports/screenshots/`) y un registro histórico detallado paso a paso (`logs/suite.log`).
+Más allá de automatizar scripts aislados, el proyecto está diseñado bajo principios de ingeniería de software que garantizan **mantenibilidad, escalabilidad, legibilidad y resiliencia ante cambios**:
+
+1. **Arquitectura desacoplada mediante Page Object Model (POM):**
+   - Cada pantalla del sistema bajo prueba ([SauceDemo](https://www.saucedemo.com/)) está representada por una clase dedicada dentro del paquete `pages/` (`LoginPage`, `InventoryPage`, `CartPage` y `CheckoutPage`), que hereda métodos de interacción seguros desde `BasePage`.
+   - Los archivos de prueba en `tests/` contienen únicamente la lógica del caso de negocio y las aserciones (`assert`), sin incluir llamadas directas a `driver.find_element(...)`. Si un selector cambia en la interfaz gráfica, solo debes actualizarlo en un único lugar dentro de su Page Object correspondiente.
+
+2. **Estrategia robusta y descriptiva de Localizadores Web (Locators):**
+   - La selección de elementos del DOM sigue una jerarquía estricta de estabilidad y velocidad de resolución para evitar pruebas frágiles (*flaky tests*), prescindiendo de rutas XPath absolutas y priorizando identificadores únicos y atributos de prueba:
+     - **`By.ID` (Máxima prioridad y rendimiento):** Utilizado siempre que el elemento posee un identificador único en el DOM, como los campos de autenticación (`id="user-name"`, `id="password"`, `id="login-button"`), el menú lateral (`id="react-burger-menu-btn"`), los botones de navegación del carrito (`id="checkout"`, `id="continue-shopping"`) y los controles del formulario de compra (`id="first-name"`, `id="last-name"`, `id="postal-code"`, `id="continue"`, `id="finish"`).
+     - **`By.CSS_SELECTOR` con atributos semánticos (`data-test` y clases compuestas):** Empleado para capturar contenedores dinámicos diseñados específicamente para pruebas automatizadas, tales como los banners de mensajes de error (`[data-test='error']` tanto en Login como en Checkout) y los botones de acción contextual en tarjetas de producto (`button.btn_inventory`) o eliminación en el carrito (`button.cart_button`).
+     - **`By.CLASS_NAME` (Agrupación estructural y colecciones de elementos):** Aplicado para localizar listas de elementos repetitivos o componentes de cabecera, como el listado de tarjetas del catálogo (`inventory_item`), nombres (`inventory_item_name`), precios (`inventory_item_price`), contador del carrito (`shopping_cart_badge`), selector de filtros (`product_sort_container`) y etiquetas de resumen financiero (`summary_subtotal_label`, `summary_total_label`, `complete-header`).
+
+3. **Sincronización inteligente y Modo de Visualización Guiada (3 segundos):**
+   - **Esperas explícitas (`WebDriverWait` + `expected_conditions`):** Todas las interacciones esperan dinámicamente a que los elementos sean visibles (`visibility_of_element_located`) o interactuables (`element_to_be_clickable`) hasta un umbral configurable (`DEFAULT_TIMEOUT = 10` segundos).
+   - **Visualización de 3 segundos en modo ventana visible:** Cuando ejecutas la suite sin la bandera `--headless` (`pytest -v`), el fixture `driver` en `conftest.py` mantiene abierta cada ventana del navegador durante **3 segundos** al finalizar la prueba antes de ejecutar el cierre (`browser.quit()`), permitiéndote observar con claridad el estado final alcanzado en pantalla en cada escenario. En modo `--headless`, la suite omite esa pausa visual para ejecutarse a máxima velocidad en pipelines CI/CD.
+
+4. **Enfoque Data-Driven Testing (DDT) e Híbrido (CSV + JSON + Faker):**
+   - Los datos de prueba están completamente separados del código fuente y se inyectan mediante `@pytest.mark.parametrize`:
+     - **Datos tabulares en CSV (`datos/login.csv`):** Almacena múltiples combinaciones de credenciales (usuarios válidos, usuarios bloqueados, credenciales inexistentes y campos vacíos) junto con el mensaje de error exacto esperado, etiquetando dinámicamente los casos negativos con el marcador `@pytest.mark.negative`.
+     - **Estructuras jerárquicas en JSON (`datos/productos.json` y `datos/test_data.json`):** Define el catálogo de productos a verificar en el carrito (nombre exacto, precio con formato de moneda y descripción), los textos esperados en cada etapa de la UI y los payloads base para la API.
+     - **Datos sintéticos dinámicos con `Faker`:** Genera nombres, apellidos y códigos postales realistas en español (`es_ES`) en cada ejecución del flujo E2E de Checkout, así como títulos y contenidos aleatorios para la creación de recursos vía API REST.
+
+5. **Validación multicapa de API REST (5 niveles) y Encadenamiento CRUD:**
+   - Las pruebas de backend sobre `JSONPlaceholder` emplean el validador centralizado `validate_api_response` (`utils/api_utils.py`), que inspecciona cada respuesta HTTP en **5 capas de control**: (1) código de estado HTTP (`200`, `201`, `404`), (2) cabeceras `Content-Type: application/json`, (3) integridad del esquema JSON mediante operaciones de conjuntos, (4) reglas de negocio sobre los datos devueltos y (5) tiempo de respuesta inferior al umbral de rendimiento (`< 3.0s`).
+   - Incluye pruebas unitarias por verbo HTTP (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`) y un flujo de **encadenamiento de peticiones** que simula el ciclo de vida real de un recurso (`POST` para crear → captura del `id` generado → `PATCH` para actualizar → `DELETE` para eliminar).
+
+6. **Observabilidad, Evidencia Visual Automática y Auditoría en Logs:**
+   - Cada ejecución genera un reporte ejecutivo autocontenido (`reports/reporte.html`) con un **Dashboard de KPIs dinámicos**, capturas de pantalla automáticas incrustadas en Base64 para todas las pruebas de UI (tanto aprobadas como fallidas, guardadas además en `reports/screenshots/` con fecha y hora), tarjetas detalladas con el *Request Payload* y *Response JSON* para todas las pruebas de API, y un archivo de registro rotativo en UTF-8 (`logs/suite.log`) que documenta cronológicamente cada paso.
 
 ---
 
@@ -45,14 +68,14 @@ ENTREGA_FINAL_Automatizacion_QA/
 ├── .gitignore                          # Exclusión de entorno virtual, cachés y temporales
 ├── requirements.txt                    # Lista de dependencias del framework
 ├── pytest.ini                          # Configuración de Pytest, marcadores y reporte HTML
-├── conftest.py                         # Fixtures globales, captura de screenshots y dashboard HTML
+├── conftest.py                         # Fixtures globales, pausa visual de 3s, screenshots y dashboard HTML
 ├── pages/                              # Clases Page Object Model (POM) para pruebas de UI
 │   ├── __init__.py
 │   ├── base_page.py                    # Clase base con esperas explícitas (WebDriverWait)
-│   ├── login_page.py                   # Página de autenticación y validación de errores
-│   ├── inventory_page.py               # Página de catálogo, filtros de ordenamiento y carrito
-│   ├── cart_page.py                    # Página del carrito de compras y eliminación de ítems
-│   └── checkout_page.py                # Página del flujo de Checkout (Pasos 1, 2 y Confirmación)
+│   ├── login_page.py                   # Localizadores comentados y acciones de Login
+│   ├── inventory_page.py               # Localizadores comentados, filtros y acciones de Catálogo
+│   ├── cart_page.py                    # Localizadores comentados y acciones del Carrito
+│   └── checkout_page.py                # Localizadores comentados del flujo de Checkout (Pasos 1, 2 y 3)
 ├── utils/                              # Utilidades, configuración, datos y logging
 │   ├── __init__.py
 │   ├── config.py                       # URLs base, timeouts y rutas de directorios
@@ -90,7 +113,7 @@ Implementan el patrón **Page Object Model**, parametrización con **CSV y JSON*
 | **UI-04** | `test_04_agregar_producto_carrito` | Funcional (Carrito) | Añade el primer producto del catálogo, verifica que el contador del carrito suba a `1` y comprueba nombre, precio y cantidad en `/cart.html`. |
 | **UI-05** | `test_05_carrito_parametrizado_json` | Data-Driven (`datos/productos.json`) | Ejecuta 3 pruebas parametrizadas agregando cada producto del archivo JSON por su nombre exacto y validando sus datos en el carrito. |
 | **UI-06** | `test_06_eliminar_producto_carrito` | Funcional (Carrito) | Agrega un producto al carrito, navega a `/cart.html`, lo elimina con el botón `Remove` y comprueba que el carrito quede vacío (`0` ítems). |
-| **UI-07** | `test_07_flujo_completo_checkout_e2e` | End-to-End (`Faker`) | Completa una compra de principio a fin: Login -> Catálogo -> Carrito -> Formulario Checkout con datos generados por `Faker` -> Resumen de precios -> Confirmación `"Thank you for your order!"`. |
+| **UI-07** | `test_07_flujo_completo_checkout_e2e` | End-to-End (`Faker`) | Completa una compra de principio a fin: Login → Catálogo → Carrito → Formulario Checkout con datos generados por `Faker` → Resumen de precios → Confirmación `"Thank you for your order!"`. |
 | **UI-08** | `test_08_checkout_campos_obligatorios_negativo` | Escenario Negativo | Intenta avanzar en el paso 1 del Checkout dejando el formulario vacío y valida el mensaje `"Error: First Name is required"`. |
 
 ### 2. Pruebas de API REST (`tests/test_api_jsonplaceholder.py`)
@@ -104,7 +127,7 @@ Utilizan la biblioteca `requests` y el validador `validate_api_response` de 5 ni
 | **API-04** | `test_api_04_put_reemplazar_recurso_completo` | `PUT /posts/1` | Reemplaza íntegramente el recurso `#1`, verificando código `200 OK` y actualización de todos sus campos. |
 | **API-05** | `test_api_05_patch_actualizar_recurso_parcial` | `PATCH /posts/1` | Actualiza parcialmente solo el campo `title`, verificando código `200 OK` y preservación de `body` y `userId`. |
 | **API-06** | `test_api_06_delete_eliminar_recurso` | `DELETE /posts/1` | Elimina el recurso `#1`, validando código `200 OK` y respuesta vacía `{}`. |
-| **API-07** | `test_api_07_flujo_encadenado_crud_completo` | `POST` -> `PATCH` -> `DELETE` | **Encadenamiento de peticiones:** Crea un post con `Faker`, toma el `id` devuelto para actualizar su título con `PATCH` y finalmente lo elimina con `DELETE`. |
+| **API-07** | `test_api_07_flujo_encadenado_crud_completo` | `POST` → `PATCH` → `DELETE` | **Encadenamiento de peticiones:** Crea un post con `Faker`, toma el `id` devuelto para actualizar su título con `PATCH` y finalmente lo elimina con `DELETE`. |
 
 ---
 
@@ -135,18 +158,21 @@ pip install -r requirements.txt
 
 Gracias a la configuración centralizada en `pytest.ini`, al ejecutar `pytest` se corren automáticamente las suites de UI y API y se genera el reporte HTML en `reports/reporte.html`.
 
-### Ejecutar toda la suite (UI + API) en modo Headless (recomendado):
-```bash
-pytest -v --headless
-```
-
-### Ejecutar toda la suite con ventana del navegador visible:
+### Ejecutar toda la suite con ventana del navegador visible (mostrando cada ventana durante 3 segundos):
 ```bash
 pytest -v
 ```
 
+### Ejecutar toda la suite (UI + API) en modo Headless (sin interfaz gráfica, ejecución rápida):
+```bash
+pytest -v --headless
+```
+
 ### Ejecutar selectivamente por tipo de prueba o marcador (`markers`):
 ```bash
+# Ejecutar únicamente los escenarios negativos (4 Login CSV + 1 Checkout UI + 1 API 404 = 6 pruebas)
+pytest -v -m negative --headless
+
 # Ejecutar únicamente las pruebas de interfaz gráfica (UI - Selenium)
 pytest -v -m ui --headless
 
@@ -155,9 +181,6 @@ pytest -v -m api
 
 # Ejecutar únicamente las pruebas críticas de humo (Smoke Tests)
 pytest -v -m smoke --headless
-
-# Ejecutar únicamente los escenarios negativos (UI + API)
-pytest -v -m negative --headless
 
 # Ejecutar únicamente los flujos completos End-to-End (Checkout UI + CRUD encadenado API)
 pytest -v -m e2e --headless

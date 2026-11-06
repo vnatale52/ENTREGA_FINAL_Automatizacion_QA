@@ -9,11 +9,18 @@ logger = logging.getLogger(__name__)
 class LoginPage(BasePage):
     """Page Object para la página de autenticación de SauceDemo."""
 
-    # Localizadores de la página de Login
+    # =========================================================================
+    # Localizadores de la página de Login (Estrategia priorizada: ID > data-test > CLASS_NAME)
+    # =========================================================================
+    # Campo de texto para el nombre de usuario (atributo id='user-name' único en el DOM)
     USERNAME_INPUT = (By.ID, "user-name")
+    # Campo de texto enmascarado para la contraseña (atributo id='password' único en el DOM)
     PASSWORD_INPUT = (By.ID, "password")
+    # Botón principal de envío del formulario de autenticación (atributo id='login-button')
     LOGIN_BUTTON = (By.ID, "login-button")
+    # Contenedor dinámico de alertas de error de autenticación (selector CSS por atributo data-test='error')
     ERROR_MESSAGE = (By.CSS_SELECTOR, "[data-test='error']")
+    # Logotipo superior 'Swag Labs' en la pantalla de inicio de sesión (clase CSS 'login_logo')
     LOGIN_LOGO = (By.CLASS_NAME, "login_logo")
 
     def __init__(self, driver):

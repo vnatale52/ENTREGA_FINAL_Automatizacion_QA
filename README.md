@@ -7,6 +7,7 @@ Framework integral de automatización de pruebas desarrollado para el **Trabajo 
 
 ---
 
+<a id="tabla-de-contenidos"></a>
 ## 📑 Tabla de Contenidos (Table of Contents)
 
 1. [🎯 Propósito del Proyecto](#proposito-del-proyecto)
@@ -69,6 +70,8 @@ Más allá de automatizar scripts aislados, el proyecto está diseñado bajo pri
 6. **Observabilidad, Evidencia Visual Automática y Auditoría en Logs:**
    - Cada ejecución genera un reporte ejecutivo autocontenido (`reports/reporte.html`) con un **Dashboard de KPIs dinámicos**, capturas de pantalla automáticas incrustadas en Base64 para todas las pruebas de UI (tanto aprobadas como fallidas, guardadas además en `reports/screenshots/` con fecha y hora), tarjetas detalladas con el *Request Payload* y *Response JSON* para todas las pruebas de API, y un archivo de registro rotativo en UTF-8 (`logs/suite.log`) que documenta cronológicamente cada paso.
 
+[⬆️ Volver a la Tabla de Contenidos](#tabla-de-contenidos)
+
 ---
 
 <a id="tecnologias-utilizadas"></a>
@@ -85,6 +88,8 @@ Más allá de automatizar scripts aislados, el proyecto está diseñado bajo pri
 | **pytest-check** | 2.0+ | Soporte para aserciones múltiples (*soft-asserts*) |
 | **pytest-rerunfailures** | 14.0+ | Reintentos automáticos ante fallos intermitentes de red |
 | **Git & GitHub Actions** | CI/CD | Control de versiones local/remoto y pipeline de ejecución continua |
+
+[⬆️ Volver a la Tabla de Contenidos](#tabla-de-contenidos)
 
 ---
 
@@ -131,6 +136,8 @@ ENTREGA_FINAL_Automatizacion_QA/
 └── README.md                           # Documentación técnica del proyecto
 ```
 
+[⬆️ Volver a la Tabla de Contenidos](#tabla-de-contenidos)
+
 ---
 
 <a id="cobertura-de-casos-de-prueba"></a>
@@ -165,6 +172,8 @@ Utilizan la biblioteca `requests` y el validador `validate_api_response` de 5 ni
 | **API-06** | `test_api_06_delete_eliminar_recurso` | `DELETE /posts/1` | Elimina el recurso `#1`, validando código `200 OK` y respuesta vacía `{}`. |
 | **API-07** | `test_api_07_flujo_encadenado_crud_completo` | `POST` → `PATCH` → `DELETE` | **Encadenamiento de peticiones:** Crea un post con `Faker`, toma el `id` devuelto para actualizar su título con `PATCH` y finalmente lo elimina con `DELETE`. |
 
+[⬆️ Volver a la Tabla de Contenidos](#tabla-de-contenidos)
+
 ---
 
 <a id="como-instalar-las-dependencias"></a>
@@ -191,6 +200,8 @@ source venv/Scripts/activate
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
+
+[⬆️ Volver a la Tabla de Contenidos](#tabla-de-contenidos)
 
 ---
 
@@ -236,6 +247,8 @@ pytest -v -m e2e --headless
 pytest -v --headless --reruns 2 --reruns-delay 2
 ```
 
+[⬆️ Volver a la Tabla de Contenidos](#tabla-de-contenidos)
+
 ---
 
 <a id="como-interpretar-los-reportes-generados"></a>
@@ -268,6 +281,8 @@ Puedes consultar el historial cronológico completo desde la terminal con:
 cat logs/suite.log
 ```
 Registra cada navegación, ingreso de texto, clic, petición HTTP, tiempo de respuesta y validación realizada durante la ejecución, facilitando la depuración inmediata ante cualquier anomalía.
+
+[⬆️ Volver a la Tabla de Contenidos](#tabla-de-contenidos)
 
 ---
 
@@ -302,6 +317,8 @@ En el archivo [`.github/workflows/ci_tests.yml`](./.github/workflows/ci_tests.ym
   - `--no-sandbox`: Permite ejecutar procesos de Chrome dentro de entornos virtualizados/contenedores de Linux sin bloqueos de privilegios.
   - `--disable-dev-shm-usage`: Evita que Chrome agote la partición de memoria compartida (`/dev/shm`) al renderizar vistas en `1920x1080` y capturar pantallas.
 
+[⬆️ Volver a la Tabla de Contenidos](#tabla-de-contenidos)
+
 ---
 
 <a id="serie-de-comandos-en-git-bash-para-subir-todo-al-repositorio-remoto-en-github"></a>
@@ -325,4 +342,6 @@ git commit -m "feat: actualizar suite completa de Entrega Final QA (UI + API)"
 git push origin main
 git push origin feature/entrega-final
 ```
+
+[⬆️ Volver a la Tabla de Contenidos](#tabla-de-contenidos)
 

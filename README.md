@@ -1,5 +1,6 @@
 # Entrega Final de Proyecto: Framework de Automatización de Pruebas QA (UI + API)
-**Estudiante / Autor:** Vincenzo Natale
+**Estudiante / Autor:** Vincenzo Natale  
+**Contacto:** [vnatale52@gmail.com](mailto:vnatale52@gmail.com)
 
 [![Suite de Pruebas Automatizadas QA (UI + API)](https://github.com/vnatale52/ENTREGA_FINAL_Automatizacion_QA/actions/workflows/ci_tests.yml/badge.svg)](https://github.com/vnatale52/ENTREGA_FINAL_Automatizacion_QA/actions/workflows/ci_tests.yml)
 

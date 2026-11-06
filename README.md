@@ -1,6 +1,8 @@
 # Entrega Final de Proyecto: Framework de Automatización de Pruebas QA (UI + API)
 **Estudiante / Autor:** Vincenzo Natale
 
+[![Suite de Pruebas Automatizadas QA (UI + API)](https://github.com/vnatale52/PRE-ENTREGA_Automatizacion_QA/actions/workflows/ci_tests.yml/badge.svg)](https://github.com/vnatale52/PRE-ENTREGA_Automatizacion_QA/actions/workflows/ci_tests.yml)
+
 Framework integral de automatización de pruebas desarrollado para el **Trabajo Final Integrador** del curso de **Automation Testing**. Combina pruebas funcionales End-to-End de interfaz de usuario (**Selenium WebDriver** sobre [SauceDemo](https://www.saucedemo.com/)) aplicando el patrón **Page Object Model (POM)** y pruebas de integración backend sobre una API REST pública (**Requests** sobre [JSONPlaceholder](https://jsonplaceholder.typicode.com/)), junto con manejo de datos externos (**CSV, JSON y Faker**), logging centralizado rotativo, capturas de pantalla automáticas, reportes HTML ejecutivos e integración continua con **GitHub Actions**.
 
 ---
@@ -219,6 +221,25 @@ Puedes consultar el historial cronológico completo desde la terminal con:
 cat logs/suite.log
 ```
 Registra cada navegación, ingreso de texto, clic, petición HTTP, tiempo de respuesta y validación realizada durante la ejecución, facilitando la depuración inmediata ante cualquier anomalía.
+
+---
+
+## ⚙️ Estado de los Pipelines CI/CD en GitHub Actions
+
+El proyecto cuenta con un pipeline de Integración Continua configurado en [`.github/workflows/ci_tests.yml`](./.github/workflows/ci_tests.yml) que se ejecuta automáticamente ante cada `push` o `pull_request` sobre la rama `main` (o de forma manual mediante `workflow_dispatch`).
+
+| ID de Ejecución | Workflow | Commit (`main`) | Estado | Resultado | Enlace Directo |
+|---|---|---|---|---|---|
+| **`42204407513`** | `Suite de Pruebas Automatizadas QA (UI + API)` | `20e058b` *(Merge final)* | `completed` | ✅ **`success`** | [Ver Run #42204407513](https://github.com/vnatale52/PRE-ENTREGA_Automatizacion_QA/actions/runs/42204407513) |
+| **`42200898865`** | `Suite de Pruebas Automatizadas QA (UI + API)` | `0ba1c74` | `completed` | ✅ **`success`** | [Ver Run #42200898865](https://github.com/vnatale52/PRE-ENTREGA_Automatizacion_QA/actions/runs/42200898865) |
+| **`42200516855`** | `Suite de Pruebas Automatizadas QA (UI + API)` | `12c8468` | `completed` | ✅ **`success`** | [Ver Run #42200516855](https://github.com/vnatale52/PRE-ENTREGA_Automatizacion_QA/actions/runs/42200516855) |
+
+### Etapas ejecutadas automáticamente en el contenedor (`ubuntu-latest`):
+1. **Checkout del repositorio (`actions/checkout@v4`):** Descarga el código fuente actualizado de la rama.
+2. **Entorno Python y caché (`actions/setup-python@v5`):** Configura Python 3.12 e instala las dependencias de `requirements.txt`.
+3. **Navegador Google Chrome (`browser-actions/setup-chrome@v1`):** Instala Chrome estable para las pruebas de UI en modo `--headless`.
+4. **Ejecución unificada de pruebas (`pytest`):** Corre las **22 pruebas automatizadas (14 UI + 8 API)** y genera el reporte autocontenido `reports/reporte.html`.
+5. **Publicación de Artefactos (`actions/upload-artifact@v4`):** Empaqueta y almacena durante 30 días el artefacto descargable **`evidencias-qa-reporte-y-logs`** con `reports/reporte.html`, `reports/screenshots/` y `logs/suite.log`.
 
 ---
 

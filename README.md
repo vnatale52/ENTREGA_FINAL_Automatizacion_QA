@@ -1,7 +1,7 @@
 # Entrega Final de Proyecto: Framework de Automatización de Pruebas QA (UI + API)
 **Estudiante / Autor:** Vincenzo Natale
 
-[![Suite de Pruebas Automatizadas QA (UI + API)](https://github.com/vnatale52/PRE-ENTREGA_Automatizacion_QA/actions/workflows/ci_tests.yml/badge.svg)](https://github.com/vnatale52/PRE-ENTREGA_Automatizacion_QA/actions/workflows/ci_tests.yml)
+[![Suite de Pruebas Automatizadas QA (UI + API)](https://github.com/vnatale52/ENTREGA_FINAL_Automatizacion_QA/actions/workflows/ci_tests.yml/badge.svg)](https://github.com/vnatale52/ENTREGA_FINAL_Automatizacion_QA/actions/workflows/ci_tests.yml)
 
 Framework integral de automatización de pruebas desarrollado para el **Trabajo Final Integrador** del curso de **Automation Testing**. Combina pruebas funcionales End-to-End de interfaz de usuario (**Selenium WebDriver** sobre [SauceDemo](https://www.saucedemo.com/)) aplicando el patrón **Page Object Model (POM)** y pruebas de integración backend sobre una API REST pública (**Requests** sobre [JSONPlaceholder](https://jsonplaceholder.typicode.com/)), junto con manejo de datos externos (**CSV, JSON y Faker**), logging centralizado rotativo, capturas de pantalla automáticas, reportes HTML ejecutivos e integración continua con **GitHub Actions**.
 
@@ -230,9 +230,9 @@ El proyecto cuenta con un pipeline de Integración Continua configurado en [`.gi
 
 | ID de Ejecución | Workflow | Commit (`main`) | Estado | Resultado | Enlace Directo |
 |---|---|---|---|---|---|
-| **`42204407513`** | `Suite de Pruebas Automatizadas QA (UI + API)` | `20e058b` *(Merge final)* | `completed` | ✅ **`success`** | [Ver Run #42204407513](https://github.com/vnatale52/PRE-ENTREGA_Automatizacion_QA/actions/runs/42204407513) |
-| **`42200898865`** | `Suite de Pruebas Automatizadas QA (UI + API)` | `0ba1c74` | `completed` | ✅ **`success`** | [Ver Run #42200898865](https://github.com/vnatale52/PRE-ENTREGA_Automatizacion_QA/actions/runs/42200898865) |
-| **`42200516855`** | `Suite de Pruebas Automatizadas QA (UI + API)` | `12c8468` | `completed` | ✅ **`success`** | [Ver Run #42200516855](https://github.com/vnatale52/PRE-ENTREGA_Automatizacion_QA/actions/runs/42200516855) |
+| **`42204407513`** | `Suite de Pruebas Automatizadas QA (UI + API)` | `20e058b` *(Merge final)* | `completed` | ✅ **`success`** | [Ver Run #42204407513](https://github.com/vnatale52/ENTREGA_FINAL_Automatizacion_QA/actions/runs/42204407513) |
+| **`42200898865`** | `Suite de Pruebas Automatizadas QA (UI + API)` | `0ba1c74` | `completed` | ✅ **`success`** | [Ver Run #42200898865](https://github.com/vnatale52/ENTREGA_FINAL_Automatizacion_QA/actions/runs/42200898865) |
+| **`42200516855`** | `Suite de Pruebas Automatizadas QA (UI + API)` | `12c8468` | `completed` | ✅ **`success`** | [Ver Run #42200516855](https://github.com/vnatale52/ENTREGA_FINAL_Automatizacion_QA/actions/runs/42200516855) |
 
 ### Etapas ejecutadas automáticamente en el contenedor (`ubuntu-latest`):
 1. **Checkout del repositorio (`actions/checkout@v4`):** Descarga el código fuente actualizado de la rama.
@@ -240,6 +240,17 @@ El proyecto cuenta con un pipeline de Integración Continua configurado en [`.gi
 3. **Navegador Google Chrome (`browser-actions/setup-chrome@v1`):** Instala Chrome estable para las pruebas de UI en modo `--headless`.
 4. **Ejecución unificada de pruebas (`pytest`):** Corre las **22 pruebas automatizadas (14 UI + 8 API)** y genera el reporte autocontenido `reports/reporte.html`.
 5. **Publicación de Artefactos (`actions/upload-artifact@v4`):** Empaqueta y almacena durante 30 días el artefacto descargable **`evidencias-qa-reporte-y-logs`** con `reports/reporte.html`, `reports/screenshots/` y `logs/suite.log`.
+
+### 🐧 ¿Qué es y cómo funciona el entorno `ubuntu-latest` (`runs-on: ubuntu-latest`)?
+En el archivo [`.github/workflows/ci_tests.yml`](./.github/workflows/ci_tests.yml), la directiva `runs-on: ubuntu-latest` define el **servidor virtual / contenedor efímero (*runner*)** que GitHub Actions aprovisiona en la nube para ejecutar la suite de pruebas:
+
+- **Entorno efímero y 100 % limpio:** En cada `git push` o *Pull Request*, GitHub crea desde cero una máquina virtual aislada con la última versión estable de **Ubuntu Linux LTS**. Una vez que finaliza la ejecución y se suben los artefactos (`reporte.html`, capturas y logs), el contenedor se destruye automáticamente, garantizando que nunca existan cachés residuales ni estados previos que contaminen las pruebas.
+- **Velocidad y estándar en CI/CD:** Los *runners* basados en Linux inician e instalan dependencias de Python (`pip`) en pocos segundos, siendo el estándar de la industria para pipelines de Integración Continua.
+- **Certificación Multiplataforma (*Cross-Platform*):** Mientras el desarrollo y la depuración visual se realizan localmente en **Windows**, la validación continua se certifica en **Linux (`ubuntu-latest`)**, demostrando que el manejo de rutas (`os.path`), la codificación UTF-8 y los localizadores WebDriver son independientes del sistema operativo.
+- **Ejecución de Chrome sin monitor físico (*Headless Linux*):** Como el servidor en la nube carece de pantalla física, el pipeline invoca Pytest con `--headless` y el fixture `driver` en `conftest.py` aplica automáticamente los argumentos de estabilidad para contenedores Linux:
+  - `--headless=new`: Renderiza el navegador en memoria sin interfaz gráfica física.
+  - `--no-sandbox`: Permite ejecutar procesos de Chrome dentro de entornos virtualizados/contenedores de Linux sin bloqueos de privilegios.
+  - `--disable-dev-shm-usage`: Evita que Chrome agote la partición de memoria compartida (`/dev/shm`) al renderizar vistas en `1920x1080` y capturar pantallas.
 
 ---
 

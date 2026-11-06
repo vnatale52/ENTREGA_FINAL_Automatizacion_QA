@@ -7,6 +7,35 @@ Framework integral de automatización de pruebas desarrollado para el **Trabajo 
 
 ---
 
+## 📑 Tabla de Contenidos (Table of Contents)
+
+1. [🎯 Propósito del Proyecto](#proposito-del-proyecto)
+2. [🛠️ Tecnologías Utilizadas](#tecnologias-utilizadas)
+3. [📁 Estructura del Proyecto](#estructura-del-proyecto)
+4. [🧪 Cobertura de Casos de Prueba](#cobertura-de-casos-de-prueba)
+   - [1. Pruebas de Interfaz de Usuario - UI (`tests/test_saucedemo.py`)](#1-pruebas-de-interfaz-de-usuario---ui-teststest_saucedemopy)
+   - [2. Pruebas de API REST (`tests/test_api_jsonplaceholder.py`)](#2-pruebas-de-api-rest-teststest_api_jsonplaceholderpy)
+5. [🚀 ¿Cómo instalar las dependencias?](#como-instalar-las-dependencias)
+   - [1. Situarte en el directorio del proyecto](#1-situarte-en-el-directorio-del-proyecto)
+   - [2. Crear y activar el entorno virtual](#2-crear-y-activar-el-entorno-virtual)
+   - [3. Instalar los paquetes requeridos](#3-instalar-los-paquetes-requeridos)
+6. [▶️ ¿Cómo ejecutar las pruebas?](#como-ejecutar-las-pruebas)
+   - [Ejecutar toda la suite con ventana del navegador visible (5 segundos)](#ejecutar-suite-ventana-visible)
+   - [Ejecutar toda la suite (UI + API) en modo Headless](#ejecutar-suite-headless)
+   - [Ejecutar selectivamente por tipo de prueba o marcador (`markers`)](#ejecutar-por-marcador)
+   - [Ejecutar con reintentos automáticos ante microcortes de red](#ejecutar-con-reintentos)
+7. [📊 ¿Cómo interpretar los reportes generados?](#como-interpretar-los-reportes-generados)
+   - [1. Reporte HTML Ejecutivo (`reports/reporte.html`)](#1-reporte-html-ejecutivo-reportsreportehtml)
+   - [2. Capturas de Pantalla (`reports/screenshots/`)](#2-capturas-de-pantalla-reportsscreenshots)
+   - [3. Archivo de Logs Detallado (`logs/suite.log`)](#3-archivo-de-logs-detallado-logssuitelog)
+8. [⚙️ Estado de los Pipelines CI/CD en GitHub Actions](#estado-de-los-pipelines-cicd-en-github-actions)
+   - [Etapas ejecutadas automáticamente en el contenedor (`ubuntu-latest`)](#etapas-ejecutadas-en-ubuntu-latest)
+   - [🐧 ¿Qué es y cómo funciona el entorno `ubuntu-latest` (`runs-on: ubuntu-latest`)?](#que-es-y-como-funciona-ubuntu-latest)
+9. [🌐 Serie de Comandos en Git Bash para Subir Todo al Repositorio Remoto en GitHub](#serie-de-comandos-en-git-bash-para-subir-todo-al-repositorio-remoto-en-github)
+
+---
+
+<a id="proposito-del-proyecto"></a>
 ## 🎯 Propósito del Proyecto
 
 El propósito principal de este proyecto es construir y demostrar un **framework de automatización de pruebas de grado profesional**, capaz de certificar la calidad funcional y de integración de una aplicación web moderna tanto en su capa de presentación (**Frontend / UI**) como en su capa de servicios (**Backend / API REST**).
@@ -42,6 +71,7 @@ Más allá de automatizar scripts aislados, el proyecto está diseñado bajo pri
 
 ---
 
+<a id="tecnologias-utilizadas"></a>
 ## 🛠️ Tecnologías Utilizadas
 
 | Tecnología / Biblioteca | Versión | Propósito en el Framework |
@@ -58,6 +88,7 @@ Más allá de automatizar scripts aislados, el proyecto está diseñado bajo pri
 
 ---
 
+<a id="estructura-del-proyecto"></a>
 ## 📁 Estructura del Proyecto
 
 El código está organizado de manera modular siguiendo las mejores prácticas de ingeniería de calidad:
@@ -102,8 +133,10 @@ ENTREGA_FINAL_Automatizacion_QA/
 
 ---
 
+<a id="cobertura-de-casos-de-prueba"></a>
 ## 🧪 Cobertura de Casos de Prueba
 
+<a id="1-pruebas-de-interfaz-de-usuario---ui-teststest_saucedemopy"></a>
 ### 1. Pruebas de Interfaz de Usuario - UI (`tests/test_saucedemo.py`)
 Implementan el patrón **Page Object Model**, parametrización con **CSV y JSON**, datos dinámicos con **Faker** y escenarios tanto positivos como negativos:
 
@@ -118,6 +151,7 @@ Implementan el patrón **Page Object Model**, parametrización con **CSV y JSON*
 | **UI-07** | `test_07_flujo_completo_checkout_e2e` | End-to-End (`Faker`) | Completa una compra de principio a fin: Login → Catálogo → Carrito → Formulario Checkout con datos generados por `Faker` → Resumen de precios → Confirmación `"Thank you for your order!"`. |
 | **UI-08** | `test_08_checkout_campos_obligatorios_negativo` | Escenario Negativo | Intenta avanzar en el paso 1 del Checkout dejando el formulario vacío y valida el mensaje `"Error: First Name is required"`. |
 
+<a id="2-pruebas-de-api-rest-teststest_api_jsonplaceholderpy"></a>
 ### 2. Pruebas de API REST (`tests/test_api_jsonplaceholder.py`)
 Utilizan la biblioteca `requests` y el validador `validate_api_response` de 5 niveles (Status Code, Header `Content-Type`, Esquema JSON, Contenido y Rendimiento):
 
@@ -133,21 +167,25 @@ Utilizan la biblioteca `requests` y el validador `validate_api_response` de 5 ni
 
 ---
 
+<a id="como-instalar-las-dependencias"></a>
 ## 🚀 ¿Cómo instalar las dependencias?
 
 Abre una terminal de **Git Bash** (estándar POSIX) en tu equipo y sigue estos pasos:
 
+<a id="1-situarte-en-el-directorio-del-proyecto"></a>
 ### 1. Situarte en el directorio del proyecto
 ```bash
 cd ~/Desktop/QA_Curso_Automatation_Testing/ENTREGA_FINAL_Automatizacion_QA
 ```
 
+<a id="2-crear-y-activar-el-entorno-virtual"></a>
 ### 2. Crear y activar el entorno virtual
 ```bash
 python -m venv venv
 source venv/Scripts/activate
 ```
 
+<a id="3-instalar-los-paquetes-requeridos"></a>
 ### 3. Instalar los paquetes requeridos
 ```bash
 python -m pip install --upgrade pip
@@ -156,20 +194,24 @@ pip install -r requirements.txt
 
 ---
 
+<a id="como-ejecutar-las-pruebas"></a>
 ## ▶️ ¿Cómo ejecutar las pruebas?
 
 Gracias a la configuración centralizada en `pytest.ini`, al ejecutar `pytest` se corren automáticamente las suites de UI y API y se genera el reporte HTML en `reports/reporte.html`.
 
+<a id="ejecutar-suite-ventana-visible"></a>
 ### Ejecutar toda la suite con ventana del navegador visible (mostrando cada pantalla durante 5 segundos):
 ```bash
 pytest -v
 ```
 
+<a id="ejecutar-suite-headless"></a>
 ### Ejecutar toda la suite (UI + API) en modo Headless (sin interfaz gráfica, ejecución rápida):
 ```bash
 pytest -v --headless
 ```
 
+<a id="ejecutar-por-marcador"></a>
 ### Ejecutar selectivamente por tipo de prueba o marcador (`markers`):
 ```bash
 # Ejecutar únicamente los escenarios negativos (4 Login CSV + 1 Checkout UI + 1 API 404 = 6 pruebas)
@@ -188,6 +230,7 @@ pytest -v -m smoke --headless
 pytest -v -m e2e --headless
 ```
 
+<a id="ejecutar-con-reintentos"></a>
 ### Ejecutar con reintentos automáticos ante microcortes de red:
 ```bash
 pytest -v --headless --reruns 2 --reruns-delay 2
@@ -195,10 +238,12 @@ pytest -v --headless --reruns 2 --reruns-delay 2
 
 ---
 
+<a id="como-interpretar-los-reportes-generados"></a>
 ## 📊 ¿Cómo interpretar los reportes generados?
 
 Al finalizar cualquier ejecución de Pytest, dispones de tres fuentes complementarias de evidencia:
 
+<a id="1-reporte-html-ejecutivo-reportsreportehtml"></a>
 ### 1. Reporte HTML Ejecutivo (`reports/reporte.html`)
 Puedes abrirlo directamente desde **Git Bash** ejecutando:
 ```bash
@@ -212,9 +257,11 @@ Dentro del reporte encontrarás:
   - En cada prueba de **UI**, verás la lista de pasos validados y la **captura de pantalla de alta resolución** tomada al finalizar el test (o en el instante exacto del fallo).
   - En cada prueba de **API**, verás una tarjeta técnica con el método HTTP (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`), la URL invocada, el código de estado recibido vs. esperado, el tiempo de respuesta en milisegundos (`ms`), el *Request Payload* enviado y el *Response JSON* devuelto por el servidor.
 
+<a id="2-capturas-de-pantalla-reportsscreenshots"></a>
 ### 2. Capturas de Pantalla (`reports/screenshots/`)
 Cada captura se almacena automáticamente en `reports/screenshots/` con un nombre descriptivo que incluye el nombre del test, el resultado (`PASSED` o `FAILED`) y la marca de tiempo (`YYYYMMDD_HHMMSS.png`).
 
+<a id="3-archivo-de-logs-detallado-logssuitelog"></a>
 ### 3. Archivo de Logs Detallado (`logs/suite.log`)
 Puedes consultar el historial cronológico completo desde la terminal con:
 ```bash
@@ -224,6 +271,7 @@ Registra cada navegación, ingreso de texto, clic, petición HTTP, tiempo de res
 
 ---
 
+<a id="estado-de-los-pipelines-cicd-en-github-actions"></a>
 ## ⚙️ Estado de los Pipelines CI/CD en GitHub Actions
 
 El proyecto cuenta con un pipeline de Integración Continua configurado en [`.github/workflows/ci_tests.yml`](./.github/workflows/ci_tests.yml) que se ejecuta automáticamente ante cada `push` o `pull_request` sobre la rama `main` (o de forma manual mediante `workflow_dispatch`).
@@ -234,6 +282,7 @@ El proyecto cuenta con un pipeline de Integración Continua configurado en [`.gi
 | **`42200898865`** | `Suite de Pruebas Automatizadas QA (UI + API)` | `0ba1c74` | `completed` | ✅ **`success`** | [Ver Run #42200898865](https://github.com/vnatale52/ENTREGA_FINAL_Automatizacion_QA/actions/runs/42200898865) |
 | **`42200516855`** | `Suite de Pruebas Automatizadas QA (UI + API)` | `12c8468` | `completed` | ✅ **`success`** | [Ver Run #42200516855](https://github.com/vnatale52/ENTREGA_FINAL_Automatizacion_QA/actions/runs/42200516855) |
 
+<a id="etapas-ejecutadas-en-ubuntu-latest"></a>
 ### Etapas ejecutadas automáticamente en el contenedor (`ubuntu-latest`):
 1. **Checkout del repositorio (`actions/checkout@v4`):** Descarga el código fuente actualizado de la rama.
 2. **Entorno Python y caché (`actions/setup-python@v5`):** Configura Python 3.12 e instala las dependencias de `requirements.txt`.
@@ -241,6 +290,7 @@ El proyecto cuenta con un pipeline de Integración Continua configurado en [`.gi
 4. **Ejecución unificada de pruebas (`pytest`):** Corre las **22 pruebas automatizadas (14 UI + 8 API)** y genera el reporte autocontenido `reports/reporte.html`.
 5. **Publicación de Artefactos (`actions/upload-artifact@v4`):** Empaqueta y almacena durante 30 días el artefacto descargable **`evidencias-qa-reporte-y-logs`** con `reports/reporte.html`, `reports/screenshots/` y `logs/suite.log`.
 
+<a id="que-es-y-como-funciona-ubuntu-latest"></a>
 ### 🐧 ¿Qué es y cómo funciona el entorno `ubuntu-latest` (`runs-on: ubuntu-latest`)?
 En el archivo [`.github/workflows/ci_tests.yml`](./.github/workflows/ci_tests.yml), la directiva `runs-on: ubuntu-latest` define el **servidor virtual / contenedor efímero (*runner*)** que GitHub Actions aprovisiona en la nube para ejecutar la suite de pruebas:
 
@@ -254,6 +304,7 @@ En el archivo [`.github/workflows/ci_tests.yml`](./.github/workflows/ci_tests.ym
 
 ---
 
+<a id="serie-de-comandos-en-git-bash-para-subir-todo-al-repositorio-remoto-en-github"></a>
 ## 🌐 Serie de Comandos en Git Bash para Subir Todo al Repositorio Remoto en GitHub
 
 Para sincronizar y publicar todos los cambios locales en el repositorio remoto de **GitHub**, abre tu terminal **Git Bash** y ejecuta la siguiente secuencia de comandos:

@@ -21,9 +21,9 @@ Más allá de automatizar scripts aislados, el proyecto está diseñado bajo pri
      - **`By.CSS_SELECTOR` con atributos semánticos (`data-test` y clases compuestas):** Empleado para capturar contenedores dinámicos diseñados específicamente para pruebas automatizadas, tales como los banners de mensajes de error (`[data-test='error']` tanto en Login como en Checkout) y los botones de acción contextual en tarjetas de producto (`button.btn_inventory`) o eliminación en el carrito (`button.cart_button`).
      - **`By.CLASS_NAME` (Agrupación estructural y colecciones de elementos):** Aplicado para localizar listas de elementos repetitivos o componentes de cabecera, como el listado de tarjetas del catálogo (`inventory_item`), nombres (`inventory_item_name`), precios (`inventory_item_price`), contador del carrito (`shopping_cart_badge`), selector de filtros (`product_sort_container`) y etiquetas de resumen financiero (`summary_subtotal_label`, `summary_total_label`, `complete-header`).
 
-3. **Sincronización inteligente y Modo de Visualización Guiada (3 segundos):**
+3. **Sincronización inteligente y Modo de Visualización Guiada (5 segundos):**
    - **Esperas explícitas (`WebDriverWait` + `expected_conditions`):** Todas las interacciones esperan dinámicamente a que los elementos sean visibles (`visibility_of_element_located`) o interactuables (`element_to_be_clickable`) hasta un umbral configurable (`DEFAULT_TIMEOUT = 10` segundos).
-   - **Visualización de 3 segundos en modo ventana visible:** Cuando ejecutas la suite sin la bandera `--headless` (`pytest -v`), el fixture `driver` en `conftest.py` mantiene abierta cada ventana del navegador durante **3 segundos** al finalizar la prueba antes de ejecutar el cierre (`browser.quit()`), permitiéndote observar con claridad el estado final alcanzado en pantalla en cada escenario. En modo `--headless`, la suite omite esa pausa visual para ejecutarse a máxima velocidad en pipelines CI/CD.
+   - **Visualización de 5 segundos en modo ventana visible:** Cuando ejecutas la suite sin la bandera `--headless` (`pytest -v`), el fixture `driver` en `conftest.py` mantiene abierta cada ventana del navegador durante **5 segundos** al finalizar la prueba antes de ejecutar el cierre (`browser.quit()`), permitiéndote observar con claridad el estado final alcanzado en pantalla en cada escenario. En modo `--headless`, la suite omite esa pausa visual para ejecutarse a máxima velocidad en pipelines CI/CD.
 
 4. **Enfoque Data-Driven Testing (DDT) e Híbrido (CSV + JSON + Faker):**
    - Los datos de prueba están completamente separados del código fuente y se inyectan mediante `@pytest.mark.parametrize`:
@@ -68,7 +68,7 @@ ENTREGA_FINAL_Automatizacion_QA/
 ├── .gitignore                          # Exclusión de entorno virtual, cachés y temporales
 ├── requirements.txt                    # Lista de dependencias del framework
 ├── pytest.ini                          # Configuración de Pytest, marcadores y reporte HTML
-├── conftest.py                         # Fixtures globales, pausa visual de 3s, screenshots y dashboard HTML
+├── conftest.py                         # Fixtures globales, pausa visual de 5s, screenshots y dashboard HTML
 ├── pages/                              # Clases Page Object Model (POM) para pruebas de UI
 │   ├── __init__.py
 │   ├── base_page.py                    # Clase base con esperas explícitas (WebDriverWait)
@@ -158,7 +158,7 @@ pip install -r requirements.txt
 
 Gracias a la configuración centralizada en `pytest.ini`, al ejecutar `pytest` se corren automáticamente las suites de UI y API y se genera el reporte HTML en `reports/reporte.html`.
 
-### Ejecutar toda la suite con ventana del navegador visible (mostrando cada ventana durante 3 segundos):
+### Ejecutar toda la suite con ventana del navegador visible (mostrando cada pantalla durante 5 segundos):
 ```bash
 pytest -v
 ```
@@ -219,3 +219,27 @@ Puedes consultar el historial cronológico completo desde la terminal con:
 cat logs/suite.log
 ```
 Registra cada navegación, ingreso de texto, clic, petición HTTP, tiempo de respuesta y validación realizada durante la ejecución, facilitando la depuración inmediata ante cualquier anomalía.
+
+---
+
+## 🌐 Serie de Comandos en Git Bash para Subir Todo al Repositorio Remoto en GitHub
+
+Para sincronizar y publicar todos los cambios locales en el repositorio remoto de **GitHub**, abre tu terminal **Git Bash** y ejecuta la siguiente secuencia de comandos:
+
+```bash
+# 1. Situarte en la carpeta del proyecto
+cd ~/Desktop/QA_Curso_Automatation_Testing/ENTREGA_FINAL_Automatizacion_QA
+
+# 2. Verificar el estado del árbol de trabajo y la URL del repositorio remoto
+git status
+git remote -v
+
+# 3. Agregar archivos modificados y registrar un commit descriptivo (si realizaste nuevos cambios)
+git add .
+git commit -m "feat: actualizar suite completa de Entrega Final QA (UI + API)"
+
+# 4. Subir la rama principal (main) y la rama de desarrollo (feature/entrega-final) a GitHub
+git push origin main
+git push origin feature/entrega-final
+```
+

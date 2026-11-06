@@ -74,7 +74,7 @@ def driver(request):
 
     Garantiza la total independencia entre casos de prueba (Teardown limpio).
     Cuando se ejecuta con ventana visible (sin --headless), mantiene la ventana abierta
-    durante 3 segundos al finalizar cada prueba para permitir su adecuada visualización.
+    durante 5 segundos al finalizar cada prueba para permitir su adecuada visualización.
     """
     is_headless = request.config.getoption("--headless")
 
@@ -107,8 +107,8 @@ def driver(request):
     yield browser
 
     if not is_headless:
-        logger.info("Manteniendo la ventana del navegador visible durante 3 segundos para su visualización...")
-        time.sleep(3)
+        logger.info("Manteniendo la ventana del navegador visible durante 5 segundos para su visualización...")
+        time.sleep(5)
 
     logger.info("Cerrando sesión de WebDriver (Teardown)...")
     browser.quit()

@@ -7,9 +7,21 @@ import sys
 import time
 from datetime import datetime
 import pytest
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
-from utils.config import BASE_DIR, SCREENSHOTS_DIR
+from selenium.webdriver.edge.options import Options as EdgeOptions
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from pages.inventory_page import InventoryPage
+from pages.login_page import LoginPage
+from utils.config import (
+    BASE_DIR,
+    DEFAULT_BROWSER,
+    SCREENSHOTS_DIR,
+    VISUAL_DELAY_SECONDS,
+)
 from utils.logger import configure_file_logging
 
 # Forzar codificación UTF-8 en streams estándar y entorno para evitar caracteres corruptos (mojibake)
@@ -51,12 +63,26 @@ def pytest_configure(config):
 
 
 def pytest_addoption(parser):
-    """Permite configurar parámetros de ejecución desde la línea de comandos."""
+    """Permite configurar parámetros de ejecución desde la línea de comandos (Mejoras 9.4 y 9.6)."""
     parser.addoption(
         "--headless",
         action="store_true",
         default=False,
-        help="Ejecutar el navegador Chrome en modo headless (sin interfaz gráfica).",
+        help="Ejecutar el navegador en modo headless (sin interfaz gráfica).",
+    )
+    parser.addoption(
+        "--visual-delay",
+        action="store",
+        type=float,
+        default=VISUAL_DELAY_SECONDS,
+        help="Segundos de pausa visual al finalizar cada prueba con ventana visible (por defecto: 5).",
+    )
+    parser.addoption(
+        "--browser",
+        action="store",
+        default=DEFAULT_BROWSER,
+        choices=["chrome", "firefox", "edge"],
+        help="Navegador objetivo para las pruebas de UI: chrome (default), firefox o edge.",
     )
 
 
@@ -68,16 +94,62 @@ def test_data():
         return json.load(f)
 
 
-@pytest.fixture(scope="function")
-def driver(request):
-    """Inicializa y destruye la instancia de WebDriver para cada prueba de interfaz (UI).
+@pytest.fixture(scope="session")
+def api_client():
+    """Inicializa una sesión HTTP persistente con Connection Pooling y Reintentos (Mejora 9.1).
 
-    Garantiza la total independencia entre casos de prueba (Teardown limpio).
-    Cuando se ejecuta con ventana visible (sin --headless), mantiene la ventana abierta
-    durante 5 segundos al finalizar cada prueba para permitir su adecuada visualización.
+    Reutiliza conexiones TCP/TLS (Keep-Alive) entre todas las pruebas de API REST
+    y aplica una política de reintentos automáticos ante fallos transitorios (429, 500, 502, 503, 504).
     """
-    is_headless = request.config.getoption("--headless")
+    session = requests.Session()
+    session.headers.update(
+        {
+            "Accept": "application/json",
+            "Content-Type": "application/json; charset=UTF-8",
+            "User-Agent": "QA-Automation-Framework-VincenzoNatale/2.0",
+        }
+    )
 
+    retry_strategy = Retry(
+        total=3,
+        backoff_factor=0.3,
+        status_forcelist=[429, 500, 502, 503, 504],
+        allowed_methods=["HEAD", "GET", "OPTIONS", "POST", "PUT", "PATCH", "DELETE"],
+    )
+    adapter = HTTPAdapter(max_retries=retry_strategy, pool_connections=10, pool_maxsize=10)
+    session.mount("https://", adapter)
+    session.mount("http://", adapter)
+
+    logger.info("Sesión HTTP persistente (api_client con Keep-Alive y Retry) inicializada.")
+    yield session
+    logger.info("Cerrando sesión HTTP persistente (api_client)...")
+    session.close()
+
+
+def _create_webdriver(browser_name: str, is_headless: bool):
+    """Fábrica multi-navegador para Chrome, Firefox y Edge (Mejora 9.6)."""
+    browser_name = browser_name.lower()
+
+    if browser_name == "firefox":
+        options = FirefoxOptions()
+        if is_headless:
+            options.add_argument("--headless")
+        options.add_argument("--width=1920")
+        options.add_argument("--height=1080")
+        return webdriver.Firefox(options=options)
+
+    if browser_name == "edge":
+        options = EdgeOptions()
+        if is_headless:
+            options.add_argument("--headless=new")
+        options.add_argument("--window-size=1920,1080")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--inprivate")
+        return webdriver.Edge(options=options)
+
+    # Por defecto: Google Chrome
     options = ChromeOptions()
     if is_headless:
         options.add_argument("--headless=new")
@@ -96,9 +168,23 @@ def driver(request):
             "profile.password_manager_leak_detection": False,
         },
     )
+    return webdriver.Chrome(options=options)
 
-    logger.info("Iniciando instancia de Chrome WebDriver para prueba UI...")
-    browser = webdriver.Chrome(options=options)
+
+@pytest.fixture(scope="function")
+def driver(request):
+    """Inicializa y destruye la instancia de WebDriver para cada prueba de interfaz (UI).
+
+    Garantiza la total independencia entre casos de prueba (Teardown limpio).
+    Cuando se ejecuta con ventana visible (sin --headless), mantiene la ventana abierta
+    durante 5 segundos por defecto (--visual-delay) al finalizar cada prueba.
+    """
+    is_headless = request.config.getoption("--headless")
+    visual_delay = request.config.getoption("--visual-delay")
+    browser_name = request.config.getoption("--browser")
+
+    logger.info(f"Iniciando instancia de {browser_name.upper()} WebDriver para prueba UI...")
+    browser = _create_webdriver(browser_name=browser_name, is_headless=is_headless)
     browser.maximize_window()
 
     # Inyección para que el hook de screenshot acceda al driver
@@ -106,12 +192,29 @@ def driver(request):
 
     yield browser
 
-    if not is_headless:
-        logger.info("Manteniendo la ventana del navegador visible durante 5 segundos para su visualización...")
-        time.sleep(5)
+    if not is_headless and visual_delay > 0:
+        logger.info(
+            f"Manteniendo la ventana del navegador visible durante {visual_delay} segundos para su visualización..."
+        )
+        time.sleep(visual_delay)
 
     logger.info("Cerrando sesión de WebDriver (Teardown)...")
     browser.quit()
+
+
+@pytest.fixture(scope="function")
+def authenticated_inventory_page(driver, test_data) -> InventoryPage:
+    """Fixture de sesión pre-autenticada para pruebas de Catálogo, Carrito y Checkout (Mejora 9.5).
+
+    Aplica el principio DRY (Don't Repeat Yourself): autentica automáticamente al usuario
+    válido ('standard_user') y devuelve la instancia de InventoryPage lista para operar.
+    """
+    user = test_data["valid_user"]
+    logger.info(
+        f"[Fixture Pre-Autenticado] Iniciando sesión automática con '{user['username']}'..."
+    )
+    LoginPage(driver).load().login(username=user["username"], password=user["password"])
+    return InventoryPage(driver).wait_for_inventory_loaded()
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
@@ -130,12 +233,13 @@ def pytest_runtest_makereport(item, call):
         report.description = first_line
 
         is_api_test = "api" in item.keywords
+        report.test_category = "api" if is_api_test else "ui"
         _SESSION_RESULTS.append(
             {
                 "passed": report.passed,
                 "failed": report.failed,
                 "skipped": report.skipped,
-                "type": "api" if is_api_test else "ui",
+                "type": report.test_category,
             }
         )
 
@@ -262,6 +366,32 @@ def pytest_runtest_makereport(item, call):
     report.extras = extras
 
 
+def pytest_testnodedown(node, error):
+    """Soporte opcional para pytest-xdist."""
+    pass
+
+
+@pytest.hookimpl(trylast=True)
+def pytest_runtest_logreport(report):
+    """Recopila resultados en el nodo controlador también durante ejecuciones paralelas (pytest-xdist)."""
+    if report.when == "call" and os.environ.get("PYTEST_XDIST_WORKER") is None:
+        # Si estamos en modo xdist (controller), _SESSION_RESULTS no fue llenado por makereport local
+        test_cat = getattr(report, "test_category", None)
+        if test_cat is None:
+            test_cat = "api" if "test_api_" in report.nodeid else "ui"
+        # Evitar duplicar si ya fue agregado en ejecución secuencial sin xdist
+        if not any(r.get("nodeid") == report.nodeid for r in _SESSION_RESULTS):
+            _SESSION_RESULTS.append(
+                {
+                    "nodeid": report.nodeid,
+                    "passed": report.passed,
+                    "failed": report.failed,
+                    "skipped": report.skipped,
+                    "type": test_cat,
+                }
+            )
+
+
 def pytest_html_results_table_header(cells):
     """Inserta una columna descriptiva en el encabezado de la tabla de resultados."""
     cells.insert(2, '<th class="sortable" style="min-width: 260px;">Descripción del Caso</th>')
@@ -275,11 +405,27 @@ def pytest_html_results_table_row(report, cells):
 
 def pytest_html_results_summary(prefix, summary, postfix, session):
     """Añade un dashboard ejecutivo con estilos modernos, KPIs dinámicos y apertura automática de detalles."""
-    total_tests = len(_SESSION_RESULTS)
-    passed_tests = sum(1 for r in _SESSION_RESULTS if r["passed"])
-    failed_tests = sum(1 for r in _SESSION_RESULTS if r["failed"])
-    ui_tests = sum(1 for r in _SESSION_RESULTS if r["type"] == "ui")
-    api_tests = sum(1 for r in _SESSION_RESULTS if r["type"] == "api")
+    # Deduplicar por nodeid en caso de que makereport y logreport hayan registrado el mismo ítem
+    unique_results = []
+    seen_nodes = set()
+    for r in _SESSION_RESULTS:
+        nid = r.get("nodeid")
+        if nid:
+            if nid in seen_nodes:
+                continue
+            seen_nodes.add(nid)
+        unique_results.append(r)
+
+    # Si tanto makereport (sin nodeid) como logreport (con nodeid) corrieron en modo secuencial,
+    # priorizar los registros con nodeid para exactitud
+    with_nodeid = [r for r in _SESSION_RESULTS if r.get("nodeid")]
+    active_results = with_nodeid if with_nodeid else unique_results
+
+    total_tests = len(active_results)
+    passed_tests = sum(1 for r in active_results if r["passed"])
+    failed_tests = sum(1 for r in active_results if r["failed"])
+    ui_tests = sum(1 for r in active_results if r["type"] == "ui")
+    api_tests = sum(1 for r in active_results if r["type"] == "api")
     pass_rate = round((passed_tests / total_tests) * 100) if total_tests > 0 else 100
 
     custom_assets = f"""
@@ -410,11 +556,11 @@ def pytest_html_results_summary(prefix, summary, postfix, session):
             <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
                 <div>
                     <h2 style="margin: 0 0 6px 0; color: #38bdf8; font-size: 20px; font-weight: 800;">🎓 Entrega Final de Proyecto: Framework de Automatización QA</h2>
-                    <p style="margin: 0; color: #94a3b8; font-size: 13px;">Suite Integrada de Pruebas UI (SauceDemo con POM + CSV/JSON/Faker) y API REST (JSONPlaceholder con Requests)</p>
+                    <p style="margin: 0; color: #94a3b8; font-size: 13px;">Suite Integrada de Pruebas UI (SauceDemo con POM + CSV/JSON/Faker) y API REST (JSONPlaceholder con Requests Session + Pydantic)</p>
                 </div>
                 <div style="text-align: right;">
-                    <div style="font-size: 14px; color: #f8fafc;"><strong>Estudiante / Autor:</strong> Vincenzo Natale</div>
-                    <div style="font-size: 12px; color: #94a3b8; margin-top: 2px;">Framework: Python 3.13 + Pytest + Selenium WebDriver + Requests</div>
+                    <div style="font-size: 14px; color: #f8fafc;"><strong>Estudiante / Autor:</strong> Vincenzo Natale (vnatale52@gmail.com)</div>
+                    <div style="font-size: 12px; color: #94a3b8; margin-top: 2px;">Framework: Python + Pytest + Selenium WebDriver + Requests + Pydantic</div>
                 </div>
             </div>
 

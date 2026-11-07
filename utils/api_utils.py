@@ -1,24 +1,72 @@
 import json
 import logging
-from typing import Any, Dict, Optional, Set
+from typing import Any, Dict, Optional, Set, Type
 import requests
 from utils.config import API_MAX_RESPONSE_TIME
 
+try:
+    from pydantic import BaseModel, Field
+except ImportError:
+    BaseModel = object  # Fallback seguro si Pydantic aún no está instalado
+    Field = lambda *args, **kwargs: None
+
 logger = logging.getLogger(__name__)
+
+
+# ==============================================================================
+# Modelos de Contrato JSON con Pydantic (Mejora 9.2: Pruebas de Contrato API)
+# ==============================================================================
+if BaseModel is not object:
+
+    class GeoSchema(BaseModel):
+        lat: str
+        lng: str
+
+    class AddressSchema(BaseModel):
+        street: str
+        suite: str
+        city: str
+        zipcode: str
+        geo: GeoSchema
+
+    class CompanySchema(BaseModel):
+        name: str
+        catchPhrase: str
+        bs: str
+
+    class UserSchema(BaseModel):
+        id: int = Field(gt=0)
+        name: str = Field(min_length=1)
+        username: str = Field(min_length=1)
+        email: str = Field(min_length=3)
+        address: AddressSchema
+        company: CompanySchema
+
+    class PostSchema(BaseModel):
+        id: int = Field(gt=0)
+        title: str = Field(min_length=1)
+        body: Optional[str] = None
+        userId: Optional[int] = None
+
+else:
+    UserSchema = None
+    PostSchema = None
 
 
 def validate_api_response(
     response: requests.Response,
     expected_status: int,
     expected_fields: Optional[Set[str]] = None,
+    expected_types: Optional[Dict[str, Type]] = None,
+    schema_model: Optional[Any] = None,
     max_time: float = API_MAX_RESPONSE_TIME,
     request_node: Any = None,
     step_label: str = "",
 ) -> Any:
-    """Valida una respuesta HTTP en 5 niveles de calidad:
+    """Valida una respuesta HTTP en 5 niveles de calidad (incluyendo Contrato JSON y Tipos):
     1. Código de estado HTTP (Status Code).
     2. Cabeceras HTTP (Content-Type JSON).
-    3. Estructura del esquema JSON (claves requeridas).
+    3. Estructura y contrato del esquema JSON (claves requeridas, tipos de datos y modelo Pydantic).
     4. Contenido / payload deserializado.
     5. Tiempo de respuesta (rendimiento).
     """
@@ -76,7 +124,7 @@ def validate_api_response(
             f"Cabecera Content-Type inválida: se esperaba 'application/json', pero se recibió '{content_type}'."
         )
 
-    # Nivel 3 y 4: Estructura y contenido JSON
+    # Nivel 3 y 4: Estructura, tipos de datos y contrato JSON (Pydantic / expected_types)
     parsed_json = response.json() if response.text else {}
     if expected_fields is not None and isinstance(parsed_json, dict):
         missing = expected_fields - set(parsed_json.keys())
@@ -84,6 +132,26 @@ def validate_api_response(
             f"Faltan campos obligatorios en la respuesta JSON de {url}: {missing}. "
             f"Campos recibidos: {list(parsed_json.keys())}"
         )
+
+    if expected_types is not None and isinstance(parsed_json, dict):
+        for field_name, expected_type in expected_types.items():
+            if field_name in parsed_json and parsed_json[field_name] is not None:
+                actual_val = parsed_json[field_name]
+                assert isinstance(actual_val, expected_type), (
+                    f"Violación de tipo de dato en '{field_name}' ({url}): "
+                    f"se esperaba {expected_type.__name__}, pero se recibió {type(actual_val).__name__} ({actual_val!r})."
+                )
+
+    if schema_model is not None and BaseModel is not object:
+        if isinstance(parsed_json, list):
+            for idx, elem in enumerate(parsed_json):
+                schema_model.model_validate(elem)
+            logger.info(
+                f"Contrato Pydantic '{schema_model.__name__}' validado en {len(parsed_json)} elementos."
+            )
+        elif isinstance(parsed_json, dict) and parsed_json:
+            schema_model.model_validate(parsed_json)
+            logger.info(f"Contrato Pydantic '{schema_model.__name__}' validado exitosamente.")
 
     # Nivel 5: Tiempo de respuesta (Performance)
     assert elapsed_sec < max_time, (

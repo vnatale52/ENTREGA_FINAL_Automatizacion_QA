@@ -23,6 +23,9 @@ logs/*.log*
 *.pdf
 *.zip
 
+# Variables de entorno locales (se versiona únicamente .env.example)
+.env
+
 # IDE & OS
 .vscode/
 .idea/

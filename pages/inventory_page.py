@@ -98,6 +98,8 @@ class InventoryPage(BasePage):
             add_btn.click()
         except Exception:
             self.driver.execute_script("arguments[0].click();", add_btn)
+        if self.get_cart_badge_count() == 0:
+            self.driver.execute_script("arguments[0].click();", add_btn)
 
         return {"name": name, "price": price}
 
@@ -115,6 +117,8 @@ class InventoryPage(BasePage):
                 try:
                     add_btn.click()
                 except Exception:
+                    self.driver.execute_script("arguments[0].click();", add_btn)
+                if self.get_cart_badge_count() == 0:
                     self.driver.execute_script("arguments[0].click();", add_btn)
                 return {"name": name, "price": price, "description": desc}
 
@@ -177,4 +181,11 @@ class InventoryPage(BasePage):
     def go_to_cart(self) -> None:
         """Navega al carrito de compras haciendo clic en el ícono del carrito."""
         logger.info("Navegando a la página del carrito de compras...")
-        self.click(self.CART_LINK)
+        cart_el = self.find_element(self.CART_LINK)
+        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", cart_el)
+        try:
+            cart_el.click()
+        except Exception:
+            self.driver.execute_script("arguments[0].click();", cart_el)
+        if "/cart.html" not in self.driver.current_url:
+            self.driver.execute_script("arguments[0].click();", cart_el)

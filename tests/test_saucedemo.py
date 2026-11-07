@@ -123,22 +123,19 @@ def test_02_login_parametrizado_csv(
 @pytest.mark.ui
 @pytest.mark.smoke
 @pytest.mark.catalog
-def test_03_navegacion_y_filtro_catalogo(driver, test_data):
+def test_03_navegacion_y_filtro_catalogo(authenticated_inventory_page, test_data):
     """Caso de Prueba UI 03: Navegación del catálogo y ordenamiento de productos por precio.
 
     Pasos:
-    1. Iniciar sesión con usuario válido y esperar la carga de la página de inventario.
+    1. Obtener sesión pre-autenticada en el catálogo mediante fixture 'authenticated_inventory_page' (DRY).
     2. Validar presencia de productos, menú hamburguesa, selector de ordenamiento e ícono de carrito.
     3. Extraer nombre y precio del primer producto.
     4. Ordenar los productos por precio de menor a mayor ('lohi') y verificar el orden numérico ascendente.
     5. Ordenar los productos por precio de mayor a menor ('hilo') y verificar el orden numérico descendente.
     """
     logger.info("=== INICIO TEST UI 03: Navegación y Filtro del Catálogo ===")
-    user = test_data["valid_user"]
     expected = test_data["expected_data"]
-
-    LoginPage(driver).load().login(username=user["username"], password=user["password"])
-    inventory_page = InventoryPage(driver).wait_for_inventory_loaded()
+    inventory_page = authenticated_inventory_page
 
     assert inventory_page.get_page_header_title() == expected["inventory_title"]
     total_items = inventory_page.get_inventory_count()
@@ -170,21 +167,18 @@ def test_03_navegacion_y_filtro_catalogo(driver, test_data):
 @pytest.mark.ui
 @pytest.mark.smoke
 @pytest.mark.cart
-def test_04_agregar_producto_carrito(driver, test_data):
+def test_04_agregar_producto_carrito(driver, authenticated_inventory_page, test_data):
     """Caso de Prueba UI 04: Añadir el primer producto al carrito y verificar sus datos.
 
     Pasos:
-    1. Iniciar sesión con credenciales válidas.
+    1. Obtener sesión pre-autenticada en el catálogo mediante fixture 'authenticated_inventory_page'.
     2. Añadir el primer producto del catálogo al carrito.
     3. Validar que el contador del carrito se incremente a '1'.
     4. Navegar al carrito (/cart.html) y verificar nombre, precio y cantidad ('1').
     """
     logger.info("=== INICIO TEST UI 04: Agregar Primer Producto al Carrito ===")
-    user = test_data["valid_user"]
     expected = test_data["expected_data"]
-
-    LoginPage(driver).load().login(username=user["username"], password=user["password"])
-    inventory_page = InventoryPage(driver).wait_for_inventory_loaded()
+    inventory_page = authenticated_inventory_page
 
     assert inventory_page.get_cart_badge_count() == 0
     added_product = inventory_page.add_first_product_to_cart()
@@ -213,21 +207,19 @@ def test_04_agregar_producto_carrito(driver, test_data):
     PRODUCTOS_JSON,
     ids=[p["nombre"].lower().replace(" ", "_") for p in PRODUCTOS_JSON],
 )
-def test_05_carrito_parametrizado_json(driver, test_data, producto):
+def test_05_carrito_parametrizado_json(driver, authenticated_inventory_page, producto):
     """Caso de Prueba UI 05: Agregar productos al carrito parametrizados desde archivo JSON externo.
 
     Pasos:
     1. Leer cada objeto de producto desde 'datos/productos.json'.
-    2. Iniciar sesión, buscar el producto por nombre exacto en el catálogo y agregarlo al carrito.
+    2. Obtener sesión pre-autenticada, buscar el producto por nombre exacto en el catálogo y agregarlo al carrito.
     3. Navegar al carrito y comprobar que el nombre y precio coincidan con los del archivo JSON.
     """
     nombre_esperado = producto["nombre"]
     precio_esperado = producto["precio"]
     logger.info(f"=== INICIO TEST UI 05 (JSON): Producto='{nombre_esperado}' ({precio_esperado}) ===")
 
-    user = test_data["valid_user"]
-    LoginPage(driver).load().login(username=user["username"], password=user["password"])
-    inventory_page = InventoryPage(driver).wait_for_inventory_loaded()
+    inventory_page = authenticated_inventory_page
 
     added_info = inventory_page.add_product_by_name(nombre_esperado)
     assert added_info["price"] == precio_esperado, (
@@ -248,20 +240,17 @@ def test_05_carrito_parametrizado_json(driver, test_data, producto):
 @pytest.mark.ui
 @pytest.mark.regression
 @pytest.mark.cart
-def test_06_eliminar_producto_carrito(driver, test_data):
+def test_06_eliminar_producto_carrito(driver, authenticated_inventory_page):
     """Caso de Prueba UI 06: Eliminar un producto del carrito de compras y verificar vaciado.
 
     Pasos:
-    1. Iniciar sesión y añadir un producto al carrito.
+    1. Obtener sesión pre-autenticada y añadir un producto al carrito.
     2. Navegar a la página del carrito y verificar que contiene 1 producto.
     3. Hacer clic en el botón 'Remove' del producto.
     4. Validar que el carrito quede vacío (0 productos) y sin contador activo.
     """
     logger.info("=== INICIO TEST UI 06: Eliminar Producto del Carrito ===")
-    user = test_data["valid_user"]
-
-    LoginPage(driver).load().login(username=user["username"], password=user["password"])
-    inventory_page = InventoryPage(driver).wait_for_inventory_loaded()
+    inventory_page = authenticated_inventory_page
 
     added = inventory_page.add_first_product_to_cart()
     assert inventory_page.wait_for_cart_badge_count(1) == 1
@@ -281,23 +270,20 @@ def test_06_eliminar_producto_carrito(driver, test_data):
 @pytest.mark.smoke
 @pytest.mark.e2e
 @pytest.mark.checkout
-def test_07_flujo_completo_checkout_e2e(driver, test_data):
+def test_07_flujo_completo_checkout_e2e(driver, authenticated_inventory_page, test_data):
     """Caso de Prueba UI 07: Flujo End-to-End completo de compra y Checkout con datos Faker.
 
     Pasos:
-    1. Iniciar sesión con usuario válido.
+    1. Obtener sesión pre-autenticada en el catálogo.
     2. Añadir el producto 'Sauce Labs Backpack' al carrito y navegar a '/cart.html'.
     3. Iniciar el proceso de Checkout y completar los datos de envío generados dinámicamente con Faker.
     4. Avanzar al resumen de compra ('Checkout: Overview') y validar presencia de subtotal y total.
     5. Confirmar la compra ('Finish') y verificar el mensaje 'Thank you for your order!'.
     """
     logger.info("=== INICIO TEST UI 07: Flujo Completo de Compra E2E (Checkout) ===")
-    user = test_data["valid_user"]
     expected = test_data["expected_data"]
     datos_comprador = generar_datos_checkout_faker()
-
-    LoginPage(driver).load().login(username=user["username"], password=user["password"])
-    inventory_page = InventoryPage(driver).wait_for_inventory_loaded()
+    inventory_page = authenticated_inventory_page
 
     added_product = inventory_page.add_product_by_name("Sauce Labs Backpack")
     assert inventory_page.wait_for_cart_badge_count(1) == 1
@@ -333,20 +319,18 @@ def test_07_flujo_completo_checkout_e2e(driver, test_data):
 @pytest.mark.regression
 @pytest.mark.negative
 @pytest.mark.checkout
-def test_08_checkout_campos_obligatorios_negativo(driver, test_data):
+def test_08_checkout_campos_obligatorios_negativo(driver, authenticated_inventory_page, test_data):
     """Caso de Prueba UI 08: Validación de campos obligatorios vacíos en Checkout (Escenario Negativo).
 
     Pasos:
-    1. Iniciar sesión, agregar un producto al carrito e ingresar al Paso 1 del Checkout.
+    1. Obtener sesión pre-autenticada, agregar un producto al carrito e ingresar al Paso 1 del Checkout.
     2. Hacer clic en 'Continue' dejando vacíos los campos obligatorios (First Name, Last Name, Postal Code).
     3. Verificar que se muestre el mensaje de error 'Error: First Name is required'.
     """
     logger.info("=== INICIO TEST UI 08: Validación Negativa de Campos en Checkout ===")
-    user = test_data["valid_user"]
     expected = test_data["expected_data"]
+    inventory_page = authenticated_inventory_page
 
-    LoginPage(driver).load().login(username=user["username"], password=user["password"])
-    inventory_page = InventoryPage(driver).wait_for_inventory_loaded()
     inventory_page.add_first_product_to_cart()
     inventory_page.go_to_cart()
 

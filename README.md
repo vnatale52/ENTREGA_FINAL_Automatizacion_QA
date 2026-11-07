@@ -278,6 +278,7 @@ start reports/reporte.html
 ```
 Dentro del reporte encontrarás:
 - **Banner Ejecutivo con KPIs Dinámicos:** Muestra en la parte superior el total de pruebas ejecutadas, la cantidad y porcentaje de pruebas aprobadas (*Passed*), las pruebas fallidas (*Failed*) y el desglose exacto entre pruebas de **UI** y de **API**.
+- **Botón Interactivo `📥 Descargar README.md` con Tooltip:** Integrado en la esquina superior derecha del Banner Ejecutivo; al pasar el cursor despliega un *tooltip* descriptivo y al hacer clic descarga directamente el archivo `README.md` completo en UTF-8 (tanto en ejecución local como desde GitHub Pages).
 - **Tabla de Resultados Interactiva:** Incluye el resultado (`Passed` / `Failed`), el identificador del test (con sus parámetros si proviene de CSV o JSON), la columna **Descripción del Caso** y la duración en segundos.
 - **Botones `Show all details` / `Hide all details`:** Por defecto, todos los detalles visuales se despliegan automáticamente al abrir el archivo; puedes contraerlos o expandirlos en cualquier momento con un clic.
 - **Tarjetas de Evidencia Visual (UI y API):**

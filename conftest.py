@@ -428,8 +428,42 @@ def pytest_html_results_summary(prefix, summary, postfix, session):
     api_tests = sum(1 for r in active_results if r["type"] == "api")
     pass_rate = round((passed_tests / total_tests) * 100) if total_tests > 0 else 100
 
+    # Codificar README.md en Base64 para permitir su descarga directa desde el reporte HTML (local y GitHub Pages)
+    readme_path = BASE_DIR / "README.md"
+    try:
+        readme_bytes = readme_path.read_bytes()
+    except Exception:
+        readme_bytes = b"# README.md no disponible"
+    readme_b64 = base64.b64encode(readme_bytes).decode("ascii")
+
     custom_assets = f"""
     <script>
+        // Descarga directa y autocontenida del archivo README.md en UTF-8
+        var _QA_README_B64 = "{readme_b64}";
+        function downloadQaReadme() {{
+            try {{
+                var binStr = window.atob(_QA_README_B64);
+                var bytes = new Uint8Array(binStr.length);
+                for (var i = 0; i < binStr.length; i++) {{
+                    bytes[i] = binStr.charCodeAt(i);
+                }}
+                var blob = new Blob([bytes], {{ type: "text/markdown;charset=utf-8" }});
+                var url = window.URL.createObjectURL(blob);
+                var a = document.createElement("a");
+                a.style.display = "none";
+                a.href = url;
+                a.download = "README.md";
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(function() {{
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                }}, 200);
+            }} catch (e) {{
+                console.error("Error al descargar README.md:", e);
+            }}
+        }}
+
         // Monkey-patch seguro para prevenir Uncaught DOMException: pushState en URLs file:// locales
         (function() {{
             var origPush = window.history.pushState;
@@ -548,6 +582,58 @@ def pytest_html_results_summary(prefix, summary, postfix, session):
         .col-result {{
             font-weight: bold !important;
         }}
+        /* Botón de descarga de README.md con Tooltip interactivo */
+        .qa-readme-tooltip-wrapper {{
+            position: relative;
+            display: inline-block;
+            margin-top: 10px;
+        }}
+        .qa-readme-btn {{
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: #ffffff !important;
+            border: 1px solid rgba(125, 211, 252, 0.45);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(2, 132, 199, 0.35);
+            transition: all 0.2s ease-in-out;
+            text-decoration: none;
+        }}
+        .qa-readme-btn:hover {{
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 14px rgba(14, 165, 233, 0.5);
+        }}
+        .qa-readme-tooltip-text {{
+            visibility: hidden;
+            opacity: 0;
+            width: 320px;
+            background-color: #0f172a;
+            color: #f8fafc;
+            text-align: left;
+            border: 1px solid #38bdf8;
+            border-radius: 8px;
+            padding: 10px 12px;
+            position: absolute;
+            z-index: 9999;
+            top: 120%;
+            right: 0;
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 1.45;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.45);
+            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+            pointer-events: none;
+        }}
+        .qa-readme-tooltip-wrapper:hover .qa-readme-tooltip-text {{
+            visibility: visible;
+            opacity: 1;
+        }}
     </style>
 
     <!-- Banner Ejecutivo con KPIs Dinámicos -->
@@ -561,6 +647,15 @@ def pytest_html_results_summary(prefix, summary, postfix, session):
                 <div style="text-align: right;">
                     <div style="font-size: 14px; color: #f8fafc;"><strong>Estudiante / Autor:</strong> Vincenzo Natale (vnatale52@gmail.com)</div>
                     <div style="font-size: 12px; color: #94a3b8; margin-top: 2px;">Framework: Python + Pytest + Selenium WebDriver + Requests + Pydantic</div>
+                    <div class="qa-readme-tooltip-wrapper">
+                        <button type="button" class="qa-readme-btn" onclick="downloadQaReadme()" title="Haz clic para descargar la documentación técnica completa del proyecto (README.md): arquitectura POM, localizadores comentados, casos UI/API, pipelines CI/CD y las 7 mejoras avanzadas de Ingeniería QA.">
+                            📥 Descargar README.md
+                        </button>
+                        <div class="qa-readme-tooltip-text">
+                            <strong style="color: #38bdf8; display: block; margin-bottom: 4px;">📄 Documentación Técnica Completa (README.md)</strong>
+                            Haz clic aquí para descargar el archivo <code>README.md</code> del proyecto con el propósito detallado, arquitectura POM, explicación de localizadores, cobertura de 22 pruebas (UI + API), pipelines CI/CD en GitHub Actions y las 7 mejoras avanzadas de Ingeniería QA.
+                        </div>
+                    </div>
                 </div>
             </div>
 

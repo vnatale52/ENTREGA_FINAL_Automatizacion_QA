@@ -3,6 +3,7 @@
 **Contacto:** [vnatale52@gmail.com](mailto:vnatale52@gmail.com)
 
 [![Suite de Pruebas Automatizadas QA (UI + API)](https://github.com/vnatale52/ENTREGA_FINAL_Automatizacion_QA/actions/workflows/ci_tests.yml/badge.svg)](https://github.com/vnatale52/ENTREGA_FINAL_Automatizacion_QA/actions/workflows/ci_tests.yml)
+[![Reporte Ejecutivo en Vivo (GitHub Pages)](https://img.shields.io/badge/GitHub%20Pages-Reporte%20HTML%20Ejecutivo-0284c7?logo=github)](https://vnatale52.github.io/ENTREGA_FINAL_Automatizacion_QA/reporte.html)
 
 Framework integral de automatización de pruebas desarrollado para el **Trabajo Final Integrador** del curso de **Automation Testing**. Combina pruebas funcionales End-to-End de interfaz de usuario (**Selenium WebDriver** sobre [SauceDemo](https://www.saucedemo.com/)) aplicando el patrón **Page Object Model (POM)** y pruebas de integración backend sobre una API REST pública (**Requests** sobre [JSONPlaceholder](https://jsonplaceholder.typicode.com/)), junto con manejo de datos externos (**CSV, JSON y Faker**), logging centralizado rotativo, capturas de pantalla automáticas, reportes HTML ejecutivos e integración continua con **GitHub Actions**.
 
@@ -30,9 +31,10 @@ Framework integral de automatización de pruebas desarrollado para el **Trabajo 
   - **7.1.** [Reporte HTML Ejecutivo (`reports/reporte.html`)](#1-reporte-html-ejecutivo-reportsreportehtml)
   - **7.2.** [Capturas de Pantalla (`reports/screenshots/`)](#2-capturas-de-pantalla-reportsscreenshots)
   - **7.3.** [Archivo de Logs Detallado (`logs/suite.log`)](#3-archivo-de-logs-detallado-logssuitelog)
-- **8.** [⚙️ Estado de los Pipelines CI/CD en GitHub Actions](#estado-de-los-pipelines-cicd-en-github-actions)
+- **8.** [⚙️ Estado de los Pipelines CI/CD en GitHub Actions y GitHub Pages](#estado-de-los-pipelines-cicd-en-github-actions)
   - **8.1.** [Etapas ejecutadas automáticamente en el contenedor (`ubuntu-latest`)](#etapas-ejecutadas-en-ubuntu-latest)
   - **8.2.** [🐧 ¿Qué es y cómo funciona el entorno `ubuntu-latest` (`runs-on: ubuntu-latest`)?](#que-es-y-como-funciona-ubuntu-latest)
+  - **8.3.** [🌐 Publicación Continua y Activación del Reporte en GitHub Pages (`gh-pages`)](#publicacion-y-configuracion-github-pages)
 - **9.** [🏆 Mejoras Avanzadas de Ingeniería QA (Superando los Requisitos de la Consigna)](#mejoras-avanzadas-ingenieria-qa)
   - **9.1.** [Reutilización de conexiones TCP/TLS en API con `requests.Session()` y `HTTPAdapter(Retry)`](#mejora-9-1-session-pool)
   - **9.2.** [Validación estricta de contratos JSON y tipos de datos con `Pydantic` / `expected_types`](#mejora-9-2-contratos-pydantic)
@@ -299,12 +301,13 @@ Registra cada navegación, ingreso de texto, clic, petición HTTP, tiempo de res
 ---
 
 <a id="estado-de-los-pipelines-cicd-en-github-actions"></a>
-## 8. ⚙️ Estado de los Pipelines CI/CD en GitHub Actions
+## 8. ⚙️ Estado de los Pipelines CI/CD en GitHub Actions y GitHub Pages
 
-El proyecto cuenta con un pipeline de Integración Continua configurado en [`.github/workflows/ci_tests.yml`](./.github/workflows/ci_tests.yml) que se ejecuta automáticamente ante cada `push` o `pull_request` sobre la rama `main` (o de forma manual mediante `workflow_dispatch`).
+El proyecto cuenta con un pipeline de Integración y Despliegue Continuo (CI/CD) configurado en [`.github/workflows/ci_tests.yml`](./.github/workflows/ci_tests.yml) que se ejecuta automáticamente ante cada `push` o `pull_request` sobre la rama `main` (o de forma manual mediante `workflow_dispatch`), contando con permisos `contents: write` para publicar evidencias tanto en **GitHub Actions Artifacts** como en la rama **`gh-pages` (GitHub Pages)**.
 
 | ID de Ejecución | Workflow | Commit (`main`) | Estado | Resultado | Enlace Directo |
 |---|---|---|---|---|---|
+| **`42378517599`** | `Suite de Pruebas Automatizadas QA (UI + API)` | `00cff00` *(7 Mejoras QA + GitHub Pages)* | `completed` | ✅ **`success`** | [Ver Run #42378517599](https://github.com/vnatale52/ENTREGA_FINAL_Automatizacion_QA/actions/runs/42378517599) |
 | **`42204407513`** | `Suite de Pruebas Automatizadas QA (UI + API)` | `20e058b` *(Merge final)* | `completed` | ✅ **`success`** | [Ver Run #42204407513](https://github.com/vnatale52/ENTREGA_FINAL_Automatizacion_QA/actions/runs/42204407513) |
 | **`42200898865`** | `Suite de Pruebas Automatizadas QA (UI + API)` | `0ba1c74` | `completed` | ✅ **`success`** | [Ver Run #42200898865](https://github.com/vnatale52/ENTREGA_FINAL_Automatizacion_QA/actions/runs/42200898865) |
 | **`42200516855`** | `Suite de Pruebas Automatizadas QA (UI + API)` | `12c8468` | `completed` | ✅ **`success`** | [Ver Run #42200516855](https://github.com/vnatale52/ENTREGA_FINAL_Automatizacion_QA/actions/runs/42200516855) |
@@ -312,10 +315,11 @@ El proyecto cuenta con un pipeline de Integración Continua configurado en [`.gi
 <a id="etapas-ejecutadas-en-ubuntu-latest"></a>
 ### 8.1. Etapas ejecutadas automáticamente en el contenedor (`ubuntu-latest`):
 1. **Checkout del repositorio (`actions/checkout@v4`):** Descarga el código fuente actualizado de la rama.
-2. **Entorno Python y caché (`actions/setup-python@v5`):** Configura Python 3.12 e instala las dependencias de `requirements.txt`.
+2. **Entorno Python y caché (`actions/setup-python@v5`):** Configura Python 3.12 e instala las dependencias de `requirements.txt` (incluyendo `selenium`, `pytest`, `pytest-html`, `pytest-xdist`, `requests`, `pydantic`, `python-dotenv` y `faker`).
 3. **Navegador Google Chrome (`browser-actions/setup-chrome@v1`):** Instala Chrome estable para las pruebas de UI en modo `--headless`.
-4. **Ejecución unificada de pruebas (`pytest`):** Corre las **22 pruebas automatizadas (14 UI + 8 API)** y genera el reporte autocontenido `reports/reporte.html`.
+4. **Ejecución unificada de pruebas (`pytest`):** Corre las **22 pruebas automatizadas (14 UI + 8 API)**, genera el reporte autocontenido `reports/reporte.html` y crea una copia `reports/index.html` para acceso raíz en la web.
 5. **Publicación de Artefactos (`actions/upload-artifact@v4`):** Empaqueta y almacena durante 30 días el artefacto descargable **`evidencias-qa-reporte-y-logs`** con `reports/reporte.html`, `reports/screenshots/` y `logs/suite.log`.
+6. **Despliegue automático en GitHub Pages (`peaceiris/actions-gh-pages@v4`):** En cada `push` sobre `main`, publica el contenido del directorio `./reports` directamente en la rama dedicada **`gh-pages`** utilizando el token oficial `secrets.GITHUB_TOKEN`.
 
 <a id="que-es-y-como-funciona-ubuntu-latest"></a>
 ### 8.2. 🐧 ¿Qué es y cómo funciona el entorno `ubuntu-latest` (`runs-on: ubuntu-latest`)?
@@ -328,6 +332,21 @@ En el archivo [`.github/workflows/ci_tests.yml`](./.github/workflows/ci_tests.ym
   - `--headless=new`: Renderiza el navegador en memoria sin interfaz gráfica física.
   - `--no-sandbox`: Permite ejecutar procesos de Chrome dentro de entornos virtualizados/contenedores de Linux sin bloqueos de privilegios.
   - `--disable-dev-shm-usage`: Evita que Chrome agote la partición de memoria compartida (`/dev/shm`) al renderizar vistas en `1920x1080` y capturar pantallas.
+
+<a id="publicacion-y-configuracion-github-pages"></a>
+### 8.3. 🌐 Publicación Continua y Activación del Reporte en GitHub Pages (`gh-pages`)
+Gracias al paso de despliegue configurado en [`.github/workflows/ci_tests.yml`](./.github/workflows/ci_tests.yml), el repositorio mantiene tres ramas sincronizadas en GitHub (`main`, `feature/entrega-final` y `gh-pages`):
+
+- **¿Cómo trabaja la automatización hacia GitHub Pages?**
+  1. Al finalizar la ejecución de Pytest en el contenedor `ubuntu-latest`, el workflow copia `reports/reporte.html` en `reports/index.html`.
+  2. La acción `peaceiris/actions-gh-pages@v4` toma la carpeta `./reports` y hace un commit automático sobre la rama **`gh-pages`** con el mensaje `"ci(pages): publicar reporte ejecutivo HTML de pruebas QA"`.
+- **Pasos de activación inicial en el repositorio de GitHub (una única vez):**
+  Para que GitHub sirva públicamente el sitio web desde la rama `gh-pages` creada por el pipeline:
+  1. Ingresa en la configuración de Pages del repositorio: **[Settings → Pages](https://github.com/vnatale52/ENTREGA_FINAL_Automatizacion_QA/settings/pages)**.
+  2. En **Build and deployment → Source**, selecciona **`Deploy from a branch`**.
+  3. En **Branch**, elige la rama **`gh-pages`**, carpeta **`/ (root)`**, y presiona **`Save`**.
+- **URL pública del Reporte Ejecutivo HTML en vivo:**
+  - 🔗 **[https://vnatale52.github.io/ENTREGA_FINAL_Automatizacion_QA/reporte.html](https://vnatale52.github.io/ENTREGA_FINAL_Automatizacion_QA/reporte.html)** *(o directamente en la raíz [https://vnatale52.github.io/ENTREGA_FINAL_Automatizacion_QA/](https://vnatale52.github.io/ENTREGA_FINAL_Automatizacion_QA/))*
 
 [⬆️ Volver a la Tabla de Contenidos](#tabla-de-contenidos)
 

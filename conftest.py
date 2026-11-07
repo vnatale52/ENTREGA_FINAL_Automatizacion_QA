@@ -3,9 +3,11 @@ import html
 import json
 import logging
 import os
+import re
+import shutil
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 import pytest
 import requests
 from requests.adapters import HTTPAdapter
@@ -436,33 +438,63 @@ def pytest_html_results_summary(prefix, summary, postfix, session):
         readme_bytes = b"# README.md no disponible"
     readme_b64 = base64.b64encode(readme_bytes).decode("ascii")
 
+    # Marca de tiempo en Hora Universal Coordinada (UTC)
+    utc_timestamp = datetime.now(timezone.utc).strftime("%d-%b-%Y at %H:%M:%S UTC")
+
     custom_assets = f"""
     <script>
         // Descarga directa y autocontenida del archivo README.md en UTF-8
         var _QA_README_B64 = "{readme_b64}";
-        function downloadQaReadme() {{
+        var _QA_UTC_TIMESTAMP = "{utc_timestamp}";
+        function downloadQaReadme(evt) {{
             try {{
+                if (evt && evt.preventDefault) {{
+                    evt.preventDefault();
+                }}
                 var binStr = window.atob(_QA_README_B64);
                 var bytes = new Uint8Array(binStr.length);
                 for (var i = 0; i < binStr.length; i++) {{
                     bytes[i] = binStr.charCodeAt(i);
                 }}
-                var blob = new Blob([bytes], {{ type: "text/markdown;charset=utf-8" }});
+                var blob = new Blob([bytes], {{ type: "application/octet-stream" }});
+                if (window.navigator && window.navigator.msSaveOrOpenBlob) {{
+                    window.navigator.msSaveOrOpenBlob(blob, "README.md");
+                    return false;
+                }}
                 var url = window.URL.createObjectURL(blob);
                 var a = document.createElement("a");
                 a.style.display = "none";
                 a.href = url;
-                a.download = "README.md";
+                a.setAttribute("download", "README.md");
                 document.body.appendChild(a);
                 a.click();
                 setTimeout(function() {{
-                    document.body.removeChild(a);
+                    if (a.parentNode) {{
+                        a.parentNode.removeChild(a);
+                    }}
                     window.URL.revokeObjectURL(url);
-                }}, 200);
+                }}, 500);
+                return false;
             }} catch (e) {{
-                console.error("Error al descargar README.md:", e);
+                console.error("Error al descargar README.md vía Blob, usando fallback nativo:", e);
+                return true;
             }}
         }}
+
+        function ensureUtcIndicator() {{
+            var paragraphs = document.getElementsByTagName("p");
+            for (var i = 0; i < paragraphs.length; i++) {{
+                var p = paragraphs[i];
+                if (p.innerHTML && p.innerHTML.indexOf("Report generated on ") !== -1) {{
+                    p.innerHTML = p.innerHTML.replace(
+                        /Report generated on [0-9]{{2}}-[A-Za-z]{{3}}-[0-9]{{4}} at [0-9]{{2}}:[0-9]{{2}}:[0-9]{{2}}(?:\\s*UTC)?/,
+                        "Report generated on " + _QA_UTC_TIMESTAMP
+                    );
+                    break;
+                }}
+            }}
+        }}
+        ensureUtcIndicator();
 
         // Monkey-patch seguro para prevenir Uncaught DOMException: pushState en URLs file:// locales
         (function() {{
@@ -491,6 +523,7 @@ def pytest_html_results_summary(prefix, summary, postfix, session):
         }} catch(e) {{}}
 
         window.addEventListener('DOMContentLoaded', function() {{
+            ensureUtcIndicator();
             setTimeout(function() {{
                 var btn = document.getElementById('show_all_details');
                 if (btn) {{ btn.click(); }}
@@ -648,9 +681,9 @@ def pytest_html_results_summary(prefix, summary, postfix, session):
                     <div style="font-size: 14px; color: #f8fafc;"><strong>Estudiante / Autor:</strong> Vincenzo Natale (vnatale52@gmail.com)</div>
                     <div style="font-size: 12px; color: #94a3b8; margin-top: 2px;">Framework: Python + Pytest + Selenium WebDriver + Requests + Pydantic</div>
                     <div class="qa-readme-tooltip-wrapper">
-                        <button type="button" class="qa-readme-btn" onclick="downloadQaReadme()" title="Haz clic para descargar la documentación técnica completa del proyecto (README.md): arquitectura POM, localizadores comentados, casos UI/API, pipelines CI/CD y las 7 mejoras avanzadas de Ingeniería QA.">
+                        <a href="data:application/octet-stream;base64,{readme_b64}" download="README.md" class="qa-readme-btn" onclick="return downloadQaReadme(event);" title="Haz clic para descargar la documentación técnica completa del proyecto (README.md): arquitectura POM, localizadores comentados, casos UI/API, pipelines CI/CD y las 7 mejoras avanzadas de Ingeniería QA.">
                             📥 Descargar README.md
-                        </button>
+                        </a>
                         <div class="qa-readme-tooltip-text">
                             <strong style="color: #38bdf8; display: block; margin-bottom: 4px;">📄 Documentación Técnica Completa (README.md)</strong>
                             Haz clic aquí para descargar el archivo <code>README.md</code> del proyecto con el propósito detallado, arquitectura POM, explicación de localizadores, cobertura de 22 pruebas (UI + API), pipelines CI/CD en GitHub Actions y las 7 mejoras avanzadas de Ingeniería QA.
@@ -687,3 +720,28 @@ def pytest_html_results_summary(prefix, summary, postfix, session):
 def pytest_html_report_title(report):
     """Personaliza el título de la pestaña y encabezado del reporte HTML."""
     report.title = "Reporte de Pruebas Automatizadas UI & API - Entrega Final QA (Vincenzo Natale)"
+
+
+def pytest_unconfigure(config):
+    """Post-procesa el reporte HTML generado para fijar la hora universal (UTC) en el encabezado y sincronizar index.html/README.md."""
+    if os.environ.get("PYTEST_XDIST_WORKER") is not None:
+        return
+    report_path = BASE_DIR / "reports" / "reporte.html"
+    if report_path.exists():
+        try:
+            content = report_path.read_text(encoding="utf-8")
+            utc_now = datetime.now(timezone.utc).strftime("%d-%b-%Y at %H:%M:%S UTC")
+            updated_content = re.sub(
+                r"Report generated on \d{2}-[A-Za-z]{3}-\d{4} at \d{2}:\d{2}:\d{2}(?:\s*UTC)?",
+                f"Report generated on {utc_now}",
+                content,
+                count=1,
+            )
+            report_path.write_text(updated_content, encoding="utf-8")
+            index_path = BASE_DIR / "reports" / "index.html"
+            shutil.copyfile(report_path, index_path)
+            readme_src = BASE_DIR / "README.md"
+            if readme_src.exists():
+                shutil.copyfile(readme_src, BASE_DIR / "reports" / "README.md")
+        except Exception as exc:
+            logger.warning(f"No se pudo post-procesar reporte.html con hora UTC: {exc}")

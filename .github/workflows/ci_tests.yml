@@ -37,6 +37,7 @@ jobs:
         run: |
           pytest -v --headless --html=reports/reporte.html --self-contained-html
           cp reports/reporte.html reports/index.html
+          cp README.md reports/README.md
 
       - name: Subir Reporte HTML, Capturas y Logs como Artefactos
         if: always()

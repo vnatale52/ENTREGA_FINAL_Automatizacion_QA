@@ -1,4 +1,5 @@
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
 from pages.base_page import BasePage
 from utils.config import CART_URL
 from typing import Dict, List
@@ -75,6 +76,7 @@ class CartPage(BasePage):
     def remove_product_by_name(self, product_name: str) -> None:
         """Elimina un producto específico del carrito haciendo clic en su botón 'Remove'."""
         items = self.get_cart_items()
+        initial_count = len(items)
         for item in items:
             name = item.find_element(*self.ITEM_NAME).text.strip()
             if name == product_name:
@@ -84,6 +86,15 @@ class CartPage(BasePage):
                     remove_btn.click()
                 except Exception:
                     self.driver.execute_script("arguments[0].click();", remove_btn)
+                try:
+                    WebDriverWait(self.driver, 2).until(
+                        lambda d: len(d.find_elements(*self.CART_ITEMS)) < initial_count
+                    )
+                except Exception:
+                    self.driver.execute_script("arguments[0].click();", remove_btn)
+                    WebDriverWait(self.driver, 2).until(
+                        lambda d: len(d.find_elements(*self.CART_ITEMS)) < initial_count
+                    )
                 return
         raise ValueError(f"El producto '{product_name}' no se encontró en el carrito para eliminar.")
 

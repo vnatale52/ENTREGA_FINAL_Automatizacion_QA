@@ -98,8 +98,15 @@ class InventoryPage(BasePage):
             add_btn.click()
         except Exception:
             self.driver.execute_script("arguments[0].click();", add_btn)
-        if self.get_cart_badge_count() == 0:
-            self.driver.execute_script("arguments[0].click();", add_btn)
+
+        # Esperar a que React actualice el contador del carrito; solo reintentar si el botón sigue en 'Add to cart'
+        try:
+            WebDriverWait(self.driver, 2).until(lambda d: self.get_cart_badge_count() > 0)
+        except Exception:
+            btn_now = first_item.find_element(*self.ADD_TO_CART_BTN)
+            if "add to cart" in btn_now.text.strip().lower():
+                self.driver.execute_script("arguments[0].click();", btn_now)
+                WebDriverWait(self.driver, 3).until(lambda d: self.get_cart_badge_count() > 0)
 
         return {"name": name, "price": price}
 
@@ -118,8 +125,15 @@ class InventoryPage(BasePage):
                     add_btn.click()
                 except Exception:
                     self.driver.execute_script("arguments[0].click();", add_btn)
-                if self.get_cart_badge_count() == 0:
-                    self.driver.execute_script("arguments[0].click();", add_btn)
+
+                # Esperar actualización del carrito; solo reintentar si el botón sigue en 'Add to cart'
+                try:
+                    WebDriverWait(self.driver, 2).until(lambda d: self.get_cart_badge_count() > 0)
+                except Exception:
+                    btn_now = item.find_element(*self.ADD_TO_CART_BTN)
+                    if "add to cart" in btn_now.text.strip().lower():
+                        self.driver.execute_script("arguments[0].click();", btn_now)
+                        WebDriverWait(self.driver, 3).until(lambda d: self.get_cart_badge_count() > 0)
                 return {"name": name, "price": price, "description": desc}
 
         raise ValueError(f"No se encontró el producto '{product_name}' en el catálogo.")
@@ -187,5 +201,9 @@ class InventoryPage(BasePage):
             cart_el.click()
         except Exception:
             self.driver.execute_script("arguments[0].click();", cart_el)
-        if "/cart.html" not in self.driver.current_url:
+        try:
+            WebDriverWait(self.driver, 2).until(lambda d: "/cart.html" in d.current_url)
+        except Exception:
+            cart_el = self.find_element(self.CART_LINK)
             self.driver.execute_script("arguments[0].click();", cart_el)
+            self.wait_for_url_contains("/cart.html")

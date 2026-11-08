@@ -14,6 +14,7 @@ Framework integral de automatización de pruebas desarrollado para el **Trabajo 
 
 - **1.** [🎯 Propósito del Proyecto](#proposito-del-proyecto)
 - **2.** [🛠️ Tecnologías Utilizadas](#tecnologias-utilizadas)
+  - **2.1.** [🧩 Sección Especial: Diferencias entre Paquete (*Package*), Biblioteca (*Library*), Plugin y Framework](#diferencias-package-plugin-framework-biblioteca)
 - **3.** [📁 Estructura del Proyecto](#estructura-del-proyecto)
 - **4.** [🧪 Cobertura de Casos de Prueba](#cobertura-de-casos-de-prueba)
   - **4.1.** [Pruebas de Interfaz de Usuario - UI (`tests/test_saucedemo.py`)](#1-pruebas-de-interfaz-de-usuario---ui-teststest_saucedemopy)
@@ -102,6 +103,53 @@ Más allá de automatizar scripts aislados, el proyecto está diseñado bajo pri
 | **pytest-check** | 2.0+ | Soporte para aserciones múltiples (*soft-asserts*) |
 | **pytest-rerunfailures** | 14.0+ | Reintentos automáticos ante fallos intermitentes de red |
 | **Git, GitHub Actions & Pages** | CI/CD | Control de versiones, pipeline de ejecución continua y publicación web del reporte HTML |
+
+<a id="diferencias-package-plugin-framework-biblioteca"></a>
+### 2.1. 🧩 Sección Especial: Diferencias entre Paquete (*Package*), Biblioteca (*Library*), Plugin y Framework
+
+En el ecosistema de Python y en la tabla **Environment** del reporte ejecutivo (`reports/reporte.html`), estos cuatro conceptos suelen solaparse porque cada uno describe el software desde una **perspectiva distinta** (cómo se distribuye, quién tiene el control del flujo de ejecución o cómo se acopla a otra herramienta):
+
+1. **Biblioteca (*Library*) — "¿Quién llama a quién?: Tú tienes el control"**
+   - Una **biblioteca** es una colección de clases y funciones listas para resolver una tarea específica (enviar peticiones HTTP, controlar el DOM de un navegador, validar esquemas de datos).
+   - **Regla de oro:** **Tu código llama a la biblioteca** cuando la necesita, y al terminar la operación el control regresa a tu código.
+   - **Ejemplos en este proyecto:**
+     - **`requests`**: tus pruebas en `tests/test_api_jsonplaceholder.py` invocan explícitamente `api_client.get(...)` o `api_client.post(...)`.
+     - **`selenium`**: las clases Page Object en `pages/base_page.py` llaman a `WebDriverWait` o `driver.find_element(...)`.
+     - **`pydantic`** y **`python-dotenv`**: el validador en `utils/api_utils.py` llama a `UserSchema.model_validate(...)` y `utils/config.py` llama a `load_dotenv(...)`.
+
+2. **Framework (*Marco de Trabajo*) — "Inversión de Control: Él te llama a ti"**
+   - Un **framework** define la arquitectura, el ciclo de vida y las reglas de ejecución del proyecto aplicando el principio de **Inversión de Control (*Inversion of Control*)**: tú no escribes un archivo `main.py` que llame una por una a las pruebas, sino que escribes piezas modulares (funciones `test_*`, fixtures en `conftest.py`, clases POM) y **el framework las descubre, inyecta sus dependencias y las ejecuta automáticamente**.
+   - **Regla de oro:** **El framework llama a tu código** en fases predeterminadas (*collection*, *setup*, *call*, *teardown* y *reporting*).
+   - **Ejemplos en este proyecto:**
+     - **`Pytest`**: es el motor y framework base de pruebas que descubre los módulos `test_*.py`, administra los fixtures (`driver`, `authenticated_inventory_page`, `api_client`) y dispara los hooks de reporte.
+     - **Este propio repositorio (`ENTREGA_FINAL_Automatizacion_QA`)**: constituye un **Framework Integral de Automatización QA** construido sobre Pytest + Selenium + Requests, ya que provee la estructura desacoplada (`pages/`, `utils/`, `datos/`, `conftest.py`, CI/CD) lista para escalar nuevos casos de prueba.
+
+3. **Paquete (*Package*) — "Cómo se agrupa, instala y distribuye el código"**
+   - El término **paquete** no describe quién controla la ejecución, sino **cómo se empaqueta y organiza físicamente el software**:
+     - **Paquete de distribución (`pip` / PyPI):** cualquier componente instalable mediante `pip install` desde `requirements.txt`. Desde el punto de vista del gestor de paquetes, *tanto una biblioteca (`selenium`, `requests`), como un framework (`pytest`), como un plugin (`pytest-html`) se distribuyen e instalan como paquetes*.
+     - **Paquete de módulos en Python:** cualquier directorio del proyecto que contiene un archivo `__init__.py` para agrupar módulos relacionados (`pages/`, `utils/`, `tests/`).
+
+4. **Plugin (*Complemento / Extensión*) — "Una pieza que se enchufa a un Framework"**
+   - Un **plugin** no se ejecuta de manera aislada; es un componente diseñado específicamente para **conectarse ("enchufarse") a un framework anfitrión** (en este caso, `Pytest` a través de su gestor de hooks `pluggy`) y extender su comportamiento automáticamente sin modificar el código de las pruebas.
+   - **Regla de oro:** Se registra ante el framework anfitrión para añadirle banderas de consola, fixtures o generadores de reportes.
+   - **Ejemplos en este proyecto (fila *Plugins* en `reports/reporte.html`):**
+     - **`pytest-html` (`html`)**: se enchufa a Pytest para interceptar los resultados y generar `reports/reporte.html`.
+     - **`pytest-xdist` (`xdist`)**: se enchufa a Pytest para habilitar la ejecución paralela multiproceso (`-n auto`).
+     - **`pytest-rerunfailures` (`rerunfailures`)** y **`pytest-check` (`check`)**: añaden reintentos automáticos (`--reruns`) y aserciones múltiples.
+     - **`Faker`**: aunque es principalmente una **biblioteca** de generación de datos sintéticos, incluye internamente un *entry-point* de **plugin para Pytest** (que expone el fixture `faker`), motivo por el cual Pytest también lo lista automáticamente bajo la fila **Plugins** del reporte.
+
+#### Cuadro Comparativo Resumen
+
+| Concepto | Pregunta clave que responde | Quién tiene el control / Rol técnico | Ejemplos en este proyecto |
+|---|---|---|---|
+| **Paquete (*Package*)** | ¿Cómo se instala (`pip`) o agrupa en carpetas? | Unidad de distribución en `requirements.txt` o carpeta con `__init__.py`. | Todos los ítems de `requirements.txt`; carpetas `pages/`, `utils/`, `tests/`. |
+| **Biblioteca (*Library*)** | ¿Qué caja de herramientas invoco desde mi código? | **Tu código llama** a sus funciones/clases cuando las necesita. | `selenium`, `requests`, `pydantic`, `python-dotenv`, `Faker`. |
+| **Framework** | ¿Quién orquesta la arquitectura y el ciclo de vida? | **Él llama a tu código** (*Inversión de Control*). | `pytest` (y la arquitectura integral de este proyecto QA). |
+| **Plugin** | ¿Qué extensión se enchufa al framework anfitrión? | Se acopla a `pytest` vía `pluggy` para ampliar sus funciones. | `pytest-html`, `pytest-xdist`, `pytest-rerunfailures`, `pytest-check`, `pytest-metadata`. |
+
+> **¿Cómo se refleja esto en la tabla *Environment* de `reports/reporte.html`?**  
+> - En la fila **Plugins** aparecen las extensiones acopladas al motor de eventos de Pytest (`Faker`, `check`, `html`, `metadata`, `rerunfailures`, `xdist`).  
+> - En la fila **Packages** (enriquecida mediante el hook `pytest_metadata` en [`conftest.py`](./conftest.py)) se listan el núcleo de ejecución (`pytest`, `pluggy`) junto con las **bibliotecas** fundamentales del framework instaladas como paquetes (`selenium`, `requests`, `pydantic`, `python-dotenv`).
 
 [⬆️ Volver a la Tabla de Contenidos](#tabla-de-contenidos)
 

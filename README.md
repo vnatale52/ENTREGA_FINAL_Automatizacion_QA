@@ -32,6 +32,7 @@ Framework integral de automatización de pruebas desarrollado para el **Trabajo 
   - **7.1.** [Reporte HTML Ejecutivo (`reports/reporte.html`)](#1-reporte-html-ejecutivo-reportsreportehtml)
   - **7.2.** [Capturas de Pantalla (`reports/screenshots/`)](#2-capturas-de-pantalla-reportsscreenshots)
   - **7.3.** [Archivo de Logs Detallado (`logs/suite.log`)](#3-archivo-de-logs-detallado-logssuitelog)
+  - **7.4.** [🔐 ¿Por qué `reporte.html` / `index.html` incluye la variable `_QA_README_B64` en Base64?](#4-explicacion-qa-readme-b64)
 - **8.** [⚙️ Estado de los Pipelines CI/CD en GitHub Actions y GitHub Pages](#estado-de-los-pipelines-cicd-en-github-actions)
   - **8.1.** [Etapas ejecutadas automáticamente en el contenedor (`ubuntu-latest`)](#etapas-ejecutadas-en-ubuntu-latest)
   - **8.2.** [🐧 ¿Qué es y cómo funciona el entorno `ubuntu-latest` (`runs-on: ubuntu-latest`)?](#que-es-y-como-funciona-ubuntu-latest)
@@ -344,6 +345,24 @@ Puedes consultar el historial cronológico completo desde la terminal con:
 cat logs/suite.log
 ```
 Registra cada navegación, ingreso de texto, clic, petición HTTP, tiempo de respuesta y validación realizada durante la ejecución, facilitando la depuración inmediata ante cualquier anomalía.
+
+<a id="4-explicacion-qa-readme-b64"></a>
+### 7.4. 🔐 ¿Por qué `reporte.html` / `index.html` incluye la variable `_QA_README_B64` en Base64?
+
+Al inspeccionar el código fuente de `reports/reporte.html` (o su copia `index.html` en GitHub Pages), observarás dentro del bloque `<script>` una variable llamada **`_QA_README_B64`** que almacena una cadena alfanumérica extensa:
+
+```javascript
+var _QA_README_B64 = "IyBFbnRyZWdhIEZpbmFsIGRlIFByb3llY3RvOiBGcmFtZXdvcmsgZGUgQXV0b21hdGl6YWNpw7NuIGRlIFBydWViYXMgUUEgKFVJICsgQVBJKQ...";
+```
+
+Esa cadena corresponde al **contenido íntegro de este archivo `README.md` codificado en formato Base64** (generado dinámicamente en [`conftest.py`](./conftest.py) mediante `base64.b64encode(readme_path.read_bytes())`). Su diseño responde a **tres razones técnicas de arquitectura**:
+
+1. **Reporte 100 % Autocontenido (`--self-contained-html`):**
+   Del mismo modo en que `pytest-html` incrusta todas las capturas de pantalla `.png` en Base64 dentro del propio archivo `.html`, almacenar `README.md` en `_QA_README_B64` garantiza que si compartes o descargas **únicamente el archivo `reporte.html`**, el botón **`📥 Descargar README.md`** funcione de manera autónoma sin depender de archivos externos.
+2. **Prevención de bloqueos de seguridad del navegador (*CORS*) en modo local (`file:///`):**
+   Cuando abres `reports/reporte.html` con doble clic directamente desde tu disco (`file:///...`), los navegadores modernos (Chrome, Edge, Firefox) bloquean por seguridad (*política CORS*) cualquier petición `fetch("../README.md")` hacia el sistema de archivos local. Al estar ya disponible en memoria dentro de `_QA_README_B64`, la función JavaScript `downloadQaReadme()` decodifica los bytes (`window.atob(_QA_README_B64)`), construye un objeto binario `Blob` (`application/octet-stream`) y dispara la descarga de forma instantánea tanto en tu PC como en GitHub Pages (`https://...`).
+3. **Integridad absoluta de caracteres UTF-8, emojis y bloques de código:**
+   El archivo `README.md` contiene cientos de líneas con bloques Markdown, comillas simples y dobles, saltos de línea, caracteres acentuados en español (`á, é, í, ó, ú, ñ, ¿, ¡`) y emojis (`🎯, 🛠️, 🧪, 🏆`). Codificar los bytes UTF-8 en Base64 asegura que viajen como texto ASCII puro dentro de la etiqueta `<script>` sin romper la sintaxis de JavaScript y que, al descargarse, el archivo `README.md` se reconstruya byte por byte sin corrupción de caracteres (*mojibake*).
 
 [⬆️ Volver a la Tabla de Contenidos](#tabla-de-contenidos)
 

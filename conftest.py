@@ -1,5 +1,6 @@
 import base64
 import html
+import importlib.metadata
 import json
 import logging
 import os
@@ -62,6 +63,22 @@ def pytest_configure(config):
             pass
     configure_file_logging()
     _SESSION_RESULTS.clear()
+
+
+@pytest.hookimpl(optionalhook=True)
+def pytest_metadata(metadata):
+    """Enriquece la fila 'Packages' de la tabla Environment en reporte.html con las bibliotecas clave del framework."""
+    packages = metadata.setdefault("Packages", {})
+    for dist_name, display_name in (
+        ("selenium", "selenium"),
+        ("requests", "requests"),
+        ("pydantic", "pydantic"),
+        ("python-dotenv", "python-dotenv"),
+    ):
+        try:
+            packages[display_name] = importlib.metadata.version(dist_name)
+        except Exception:
+            pass
 
 
 def pytest_addoption(parser):
